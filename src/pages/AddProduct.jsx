@@ -1,7 +1,7 @@
 import { useState } from "react";
-import ImageUploader from "../components/ImageUploader.jsx"; // 새로 만든 컴포넌트 import
+import ImageUploader from "../components/ImageUploader.jsx"; 
 
-// Back Arrow Icon SVG Component
+// 뒤로가기 아이콘
 function BackIcon() {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -11,16 +11,22 @@ function BackIcon() {
 }
 
 export default function AddProduct() {
+  // 사용자가 입력하는 폼 데이터들, api로 보낼 데이터
   const [form, setForm] = useState({
     name: "",
     category: "",
     price: "",
     description: "",
-    images: [],
+    images: [], // 이미지 파일들은 여기에 배열로 쌓임
   });
+  
+  // 유효성 검사 실패했을 때 보여줄 메시지
   const [inlineMsg, setInlineMsg] = useState(null);
+  
+  // AI 버튼 눌렀을 때 로딩 상태 표시용
   const [loadingAi, setLoadingAi] = useState(false);
 
+  // '상품 등록하기' 누르기 전에 필수 항목 다 채웠는지 검사
   function validateForPreview() {
     if (!form.name.trim()) {
       setInlineMsg("상품명을 입력해주세요.");
@@ -30,32 +36,38 @@ export default function AddProduct() {
       setInlineMsg("카테고리를 선택해주세요.");
       return false;
     }
-    setInlineMsg(null);
+    setInlineMsg(null); // 문제 없으면 메시지 다시 숨기기
     return true;
   }
 
+  // '상품 등록하기' 버튼 눌렀을 때 동작
   function onPreview() {
-    if (!validateForPreview()) return;
+    if (!validateForPreview()) return; // 검사 실패하면 여기서 멈춤
+    
+    // 나중에 API 연결하면 이 부분에서 서버로 데이터 보낼 예정
     console.log("미리보기 데이터:", form);
     alert("미리보기 OK (콘솔 확인)");
   }
    
+  // 'AI로 쉽게 작성하기' 기능 (지금은 더미 데이터로 동작)
   function onUseAiFromVoice() {
-    setLoadingAi(true);
+    setLoadingAi(true); // 로딩 시작
+    
+    // 1초 뒤에 AI가 작성한 것처럼 폼 채워주기
     setTimeout(() => {
       const example = {
         name: "해남 밤고구마 1.5kg",
         category: "농산물",
         price: "12000",
         description: "포근포근하고 달콤한 해남 밤고구마입니다. 퍽퍽하지 않고 목막힘이 적어 아이들 간식으로도 좋습니다.",
-        images: [], // AI 기능은 이미지 필드를 채우지 않도록 설정
+        images: [],
       };
       setForm(example);
-      setLoadingAi(false);
+      setLoadingAi(false); // 로딩 끝
     }, 1000);
   }
   
-  // 입력 필드 값 변경을 처리하는 함수
+  // input, textarea 값이 바뀔 때마다 form 상태 업뎃
   function handleChange(e) {
     const { name, value } = e.target;
     setForm(prev => ({ ...prev, [name]: value }));
@@ -63,18 +75,19 @@ export default function AddProduct() {
 
   return (
     <div className="h-full flex flex-col">
-      {/* Header */}
+      {/* 상단 헤더 */}
       <header className="flex items-center p-4 border-b">
         <button className="p-1">
           <BackIcon />
         </button>
         <h1 className="text-lg font-bold text-center flex-grow">메뉴 추가</h1>
-        <div className="w-6"></div> {/* 오른쪽 공간 확보용 */}
+        <div className="w-6" /> {/* 제목 가운데 정렬용 빈 공간 */}
       </header>
 
-      {/* Form Content */}
+      {/* 메인 콘텐츠 (스크롤 가능 영역) */}
       <main className="flex-1 overflow-y-auto p-6 bg-gray-50">
         <div className="space-y-6">
+          {/* AI로 쉽게 작성하기 버튼 */}
           <button
             type="button"
             onClick={onUseAiFromVoice}
@@ -84,7 +97,7 @@ export default function AddProduct() {
             {loadingAi ? "AI가 작성 중..." : "인공지능으로 쉽게 작성하기"}
           </button>
           
-          {/* 상품명 */}
+          {/* 상품명 입력 */}
           <div className="bg-white p-4 rounded-lg shadow-sm">
             <label htmlFor="name" className="block text-sm font-bold text-gray-800 mb-2">상품명</label>
             <input
@@ -98,7 +111,7 @@ export default function AddProduct() {
             <p className="mt-2 text-xs text-gray-500">상품 종류와 특징을 명확히 나타내는 상품명이 좋아요.</p>
           </div>
 
-          {/* 카테고리 */}
+          {/* 카테고리 선택 (드롭다운) */}
           <div className="bg-white p-4 rounded-lg shadow-sm">
             <label htmlFor="category" className="block text-sm font-bold text-gray-800 mb-2">카테고리</label>
             <select
@@ -117,13 +130,14 @@ export default function AddProduct() {
             </select>
           </div>
           
-          {/* 대표 이미지 */}
+          {/* 대표 이미지 업로드 */}
           <div className="bg-white p-4 rounded-lg shadow-sm">
             <ImageUploader
               onFilesChange={(files) =>
                 setForm((p) => ({ ...p, images: files }))
               }
             />
+             {/* AI 이미지 생성 버튼 (아직 개발 중) AI연결은 어케해야해요*/}
              <button
                 type="button"
                 className="w-full mt-3 rounded-md bg-violet-200 text-violet-700 py-2 text-sm cursor-not-allowed font-semibold"
@@ -146,6 +160,7 @@ export default function AddProduct() {
               onChange={handleChange}
             />
           </div>
+          
            {/* 가격 */}
           <div className="bg-white p-4 rounded-lg shadow-sm">
             <label htmlFor="price" className="block text-sm font-bold text-gray-800 mb-2">가격</label>
@@ -164,8 +179,9 @@ export default function AddProduct() {
         </div>
       </main>
 
-      {/* Footer - Submit Button */}
+      {/* 하단 버튼 */}
       <footer className="p-4 border-t bg-white">
+        {/* 유효성 검사 메시지 보여줄 곳 */}
         {inlineMsg && (
           <p className="text-red-500 text-xs text-center mb-2">{inlineMsg}</p>
         )}
