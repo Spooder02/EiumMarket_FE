@@ -10,8 +10,9 @@ function BackIcon() {
   );
 }
 
-export default function AddProduct() {
-  // 사용자가 입력하는 폼 데이터들, api로 보낼 데이터
+// 부모 컴포넌트(App.jsx)로부터 onPreview 함수를 props로 받아옴
+export default function AddProduct({ onPreview }) {
+  // 사용자가 입력하는 폼 데이터들
   const [form, setForm] = useState({
     name: "",
     category: "",
@@ -40,15 +41,6 @@ export default function AddProduct() {
     return true;
   }
 
-  // '상품 등록하기' 버튼 눌렀을 때 동작
-  function onPreview() {
-    if (!validateForPreview()) return; // 검사 실패하면 여기서 멈춤
-    
-    // 나중에 API 연결하면 이 부분에서 서버로 데이터 보낼 예정
-    console.log("미리보기 데이터:", form);
-    alert("미리보기 OK (콘솔 확인)");
-  }
-   
   // 'AI로 쉽게 작성하기' 기능 (지금은 더미 데이터로 동작)
   function onUseAiFromVoice() {
     setLoadingAi(true); // 로딩 시작
@@ -67,10 +59,17 @@ export default function AddProduct() {
     }, 1000);
   }
   
-  // input, textarea 값이 바뀔 때마다 form 상태 업뎃
+  // input, textarea 값이 바뀔 때마다 form 상태 업데이트
   function handleChange(e) {
     const { name, value } = e.target;
     setForm(prev => ({ ...prev, [name]: value }));
+  }
+
+  // '상품 등록하기' 버튼을 눌렀을 때 다음 단계로 넘어가는 함수
+  function handleNextStep() {
+    if (!validateForPreview()) return; // 유효성 검사 실패하면 중단
+    // 부모 컴포넌트(App.jsx)로부터 받은 onPreview 함수에 현재 폼 데이터를 담아 호출
+    onPreview(form); 
   }
 
   return (
@@ -137,7 +136,7 @@ export default function AddProduct() {
                 setForm((p) => ({ ...p, images: files }))
               }
             />
-             {/* AI 이미지 생성 버튼 (아직 개발 중) AI연결은 어케해야해요*/}
+             {/* AI 이미지 생성 버튼 (아직 개발 중) */}
              <button
                 type="button"
                 className="w-full mt-3 rounded-md bg-violet-200 text-violet-700 py-2 text-sm cursor-not-allowed font-semibold"
@@ -187,7 +186,7 @@ export default function AddProduct() {
         )}
         <button
           type="button"
-          onClick={onPreview}
+          onClick={handleNextStep}
           className="w-full rounded-lg bg-emerald-500 text-white py-3 text-sm font-bold hover:bg-emerald-600 transition-colors"
         >
           상품 등록하기
