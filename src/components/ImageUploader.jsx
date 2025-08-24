@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 
 // Camera Icon SVG Component
 function CameraIcon() {
@@ -10,7 +10,7 @@ function CameraIcon() {
   );
 }
 
-export default function ImageUploader({ onFilesChange, maxImages = 3 }) {
+export default function ImageUploader({ onFilesChange, maxImages = 3, aiPreview }) {
   const [previews, setPreviews] = useState(Array(maxImages).fill(null));
   const fileInputRefs = useRef([]);
 
@@ -29,6 +29,35 @@ export default function ImageUploader({ onFilesChange, maxImages = 3 }) {
     currentFiles[index] = file;
     onFilesChange(currentFiles.filter(f => f !== null));
   }
+
+  useEffect(() => {
+    if (!aiPreview) return;
+
+    if (aiPreview instanceof File) {
+      const objectUrl = URL.createObjectURL(aiPreview);
+      
+      console.log("생성된 Blob URL:", objectUrl);
+
+      setPreviews(currentPreviews => {
+        const newPreviews = [...currentPreviews];
+        newPreviews[0] = objectUrl;
+        return newPreviews;
+      });
+
+      return () => {
+        console.log("Blob URL 메모리 해제:", objectUrl);
+        URL.revokeObjectURL(objectUrl);
+      };
+    } else {
+
+      console.log("문자열 URL 사용:", aiPreview);
+      setPreviews(currentPreviews => {
+        const newPreviews = [...currentPreviews];
+        newPreviews[0] = aiPreview;
+        return newPreviews;
+      });
+    }
+  }, [aiPreview]);
 
   return (
     <div>

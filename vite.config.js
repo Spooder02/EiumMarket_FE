@@ -16,6 +16,11 @@ export default defineConfig({
         changeOrigin: true, // cross-origin 요청을 위해 필요한 설정
         // 요청 주소에서 '/api' 부분을 제거하고 보냅니다.
         rewrite: (path) => path.replace(/^\/api/, ''),
+      },
+      '/naver-api': {
+        target: 'https://naveropenapi.apigw.ntruss.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/naver-api/, ''), // 경로에서 '/naver-api' 제거
       }
     }
   }

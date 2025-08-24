@@ -45,6 +45,7 @@ export default function AddStore() {
     }
 
     // 3) 바디 구성
+    // TODO: 이미지 업로드 로직 추가 필요. 현재는 텍스트 데이터만 전송.
     const requestBody = {
       marketId: Number(marketId),
       name: form.name,
@@ -55,13 +56,26 @@ export default function AddStore() {
       latitude: 37.55998, // TODO: 실제 좌표 연결
       longitude: 126.9784,
       description: form.description,
+      // form.image가 File 객체이므로, 업로드 후 URL을 받아와야 합니다.
+      // 우선 임시 플레이스홀더 URL을 사용합니다.
       shopImageUrl: "https://placehold.co/600x400/DDDDDD/333333?text=Image",
       address: form.address,
     };
+    
+    // 이미지가 있을 경우 FormData를 사용해야 합니다. 아래는 FormData 예시입니다.
+    // 현재는 JSON으로 보내고 있으므로, 이미지 전송을 위해서는 수정이 필요합니다.
+    /*
+    const formData = new FormData();
+    formData.append('imageFile', form.image);
+    // DTO를 JSON Blob으로 변환하여 추가
+    const dtoBlob = new Blob([JSON.stringify({ ...requestBody, shopImageUrl: null })], { type: 'application/json' });
+    formData.append('dto', dtoBlob);
+    */
 
     try {
       const response = await apiFetch(`/markets/${marketId}/shops`, {
         method: "POST",
+        // form.image가 있을 경우 headers와 body를 FormData에 맞게 수정해야 합니다.
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(requestBody),
       });
