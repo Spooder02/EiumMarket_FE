@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import ImageUploader from "../components/ImageUploader.jsx";
 import AiVoiceModal from "../components/modals/AiVoiceModal.js";
+import AiImageModal from "../components/modals/AiImageModal.js";
 
 // --- 아이콘 SVG 컴포넌트들 ---
 function BackIcon() { 
@@ -17,6 +18,14 @@ const XIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" 
 
 export default function AddProduct({ onPreview }) {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const marketId = searchParams.get('marketId');
+  const shopId = searchParams.get('shopId');
+
+  useEffect(() => {
+    console.log("marketId:", marketId, "shopId:", shopId);
+  }, [])
+
   const [form, setForm] = useState({
     name: "",
     category: "",
@@ -26,10 +35,67 @@ export default function AddProduct({ onPreview }) {
     images: [],
   });
   
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [hasOptions, setHasOptions] = useState(false);
   const [inlineMsg, setInlineMsg] = useState(null);
   const [loadingAi, setLoadingAi] = useState(false);
   const [isAiModalOpen, setIsAiModalOpen] = useState(false);
+  const [isAiImageModalOpen, setIsAiImageModalOpen] = useState(false);
+  const [productInfo, setProductInfo] = useState({ name: '', price: '' });
+
+  function handleNextStep() {
+    handleSubmit();
+  }
+
+  async function handleSubmit() {
+    if (!validateForPreview()) return;
+
+    setIsSubmitting(true);
+    setInlineMsg(null);
+
+    const formData = new FormData();
+
+    formData.append('shopId', shopId);
+    formData.append('name', form.name);
+    formData.append('price', form.price || 0);
+    formData.append('category', form.category);
+    formData.append('description', form.description);
+
+    // AI 생성 혹은 업로드 구분
+    const imageUrls = form.images.filter(img => typeof img === 'string');
+    const imageFiles = form.images.filter(img => img instanceof File);
+
+    imageUrls.forEach(url => {
+        formData.append('imageUrls', url);
+    });
+
+    imageFiles.forEach(file => {
+        formData.append('imageFiles', file);
+    });
+
+    try {
+      const BACKEND_ENDPOINT = import.meta.env.VITE_BACKEND_ENDPOINT;
+      const response = await fetch(`${BACKEND_ENDPOINT}/markets/${marketId}/shops/${shopId}/items`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "상품 등록에 실패했습니다.");
+      }
+
+      const result = await response.json();
+      console.log("등록 성공:", result);
+      alert("상품이 성공적으로 등록되었습니다!");
+
+    } catch (error) {
+      console.error("상품 등록 오류:", error);
+      setInlineMsg(error.message || "오류가 발생했습니다. 다시 시도해주세요.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
 
   const handleOptionChange = (index, field, value) => { 
     const newOptions = [...form.options]; 
@@ -49,6 +115,12 @@ export default function AddProduct({ onPreview }) {
     const newOptions = form.options.filter((_, i) => i !== index); 
     setForm(prev => ({ ...prev, options: newOptions })); 
   };
+  
+  useEffect(() => {
+    if (form.name && form.price) {
+      setProductInfo({ name: form.name, price: form.price });
+    }
+  }, [form]);
 
   function validateForPreview() {
     if (!form.name.trim()) {
@@ -77,6 +149,14 @@ export default function AddProduct({ onPreview }) {
     setIsAiModalOpen(true);
   }
 
+  function openAiImageModal() {
+    if (productInfo.name !== '' && productInfo.price !== '') {
+      setIsAiImageModalOpen(true);
+    } else {
+      setInlineMsg("이미지 생성을 위해 상품 정보를 확인해주세요. (*상품명과 가격)");
+    }
+  }
+
   function onUseAiFromVoice(data) { 
     setTimeout(() => { 
       const example = {
@@ -91,22 +171,16 @@ export default function AddProduct({ onPreview }) {
     setIsAiModalOpen(false);
   }
 
+  function onUseAiFromImage(data) {
+    console.log("AI가 생성한 이미지들:", data);
+    setForm((p) => ({ ...p, images: [...p.images, data] }))
+    console.log("images: ", form.images);
+    setIsAiImageModalOpen(false);
+  }
+
   function handleChange(e) { 
     const { name, value } = e.target; 
     setForm(prev => ({ ...prev, [name]: value })); 
-  }
-
-  function handleNextStep() {
-    if (!validateForPreview()) return;
-    
-    const finalForm = { ...form };
-    if (hasOptions) {
-      finalForm.price = null;
-    } else {
-      finalForm.options = [];
-    }
-    onPreview(finalForm); 
-    navigate('/preview'); // 유효성 검사 통과 후 미리보기 페이지로 이동
   }
 
   return (
@@ -117,6 +191,12 @@ export default function AddProduct({ onPreview }) {
         isOpen={isAiModalOpen}
         setIsOpen={setIsAiModalOpen}
         onResult={onUseAiFromVoice}
+      />
+      <AiImageModal
+        isOpen={isAiImageModalOpen}
+        setIsOpen={setIsAiImageModalOpen}
+        onResult={onUseAiFromImage}
+        productInfo={productInfo}
       />
       <header className="flex items-center p-4 border-b flex-shrink-0">
         <button onClick={() => navigate(-1)} className="p-1"><BackIcon /></button>
@@ -150,8 +230,8 @@ export default function AddProduct({ onPreview }) {
           </div>
           
           <div className="bg-white p-4 rounded-lg shadow-sm">
-            <ImageUploader onFilesChange={(files) => setForm((p) => ({ ...p, images: files }))} />
-            <button type="button" className="w-full mt-3 rounded-md bg-violet-200 text-violet-700 py-2 text-sm cursor-not-allowed font-semibold" disabled title="준비 중 기능">AI로 이미지 생성 (준비 중)</button>
+            <ImageUploader onFilesChange={(files) => setForm((p) => ({ ...p, images: files }))} aiPreview={form.images[0]} />
+            <button type="button" className="w-full mt-3 rounded-md bg-violet-200 text-violet-700 py-2 text-sm cursor-not-allowed font-semibold" onClick={openAiImageModal}>AI로 이미지 생성</button>
           </div>
           
           <div className="bg-white p-4 rounded-lg shadow-sm">
@@ -190,7 +270,14 @@ export default function AddProduct({ onPreview }) {
       
       <footer className="p-4 border-t bg-white flex-shrink-0">
         {inlineMsg && <p className="text-red-500 text-xs text-center mb-2">{inlineMsg}</p>}
-        <button type="button" onClick={handleNextStep} className="w-full rounded-lg bg-emerald-500 text-white py-3 text-sm font-bold hover:bg-emerald-600 transition-colors">상품 등록하기</button>
+        <button 
+          type="button" 
+          onClick={handleNextStep} 
+          disabled={isSubmitting}
+          className="w-full rounded-lg bg-emerald-500 text-white py-3 text-sm font-bold hover:bg-emerald-600 transition-colors disabled:bg-gray-400"
+        >
+          {isSubmitting ? "등록 중..." : "상품 등록하기"}
+        </button>
       </footer>
     </div>
   );
