@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ImageUploader from "../components/ImageUploader.jsx";
+import AiVoiceModal from "../components/modals/AiVoiceModal.js";
 
 // --- 아이콘 SVG 컴포넌트들 ---
 function BackIcon() { 
@@ -28,6 +29,7 @@ export default function AddProduct({ onPreview }) {
   const [hasOptions, setHasOptions] = useState(false);
   const [inlineMsg, setInlineMsg] = useState(null);
   const [loadingAi, setLoadingAi] = useState(false);
+  const [isAiModalOpen, setIsAiModalOpen] = useState(false);
 
   const handleOptionChange = (index, field, value) => { 
     const newOptions = [...form.options]; 
@@ -70,27 +72,25 @@ export default function AddProduct({ onPreview }) {
     return true;
   }
 
-  function onUseAiFromVoice() { 
+  function openAiVoiceModal() {
     setLoadingAi(true); 
+    setIsAiModalOpen(true);
+  }
+
+  function onUseAiFromVoice(data) { 
     setTimeout(() => { 
-      const example = { 
-        name: "돌산 족발", 
-        category: "축산물", 
-        price: '', 
-        options: [
-          { name: "소", price: "28000" }, 
-          { name: "중", price: "33000" }, 
-          { name: "대", price: "38000" }
-        ], 
-        description: "국내산 생족을 매일 직접 삶아 부드럽고 쫄깃한 식감이 일품입니다.", 
+      const example = {
+        ...data,
+        options: [],
         images: [], 
       }; 
       setForm(example); 
-      setHasOptions(true); 
+      setHasOptions(false); 
       setLoadingAi(false); 
-    }, 1000); 
+    }, 500); 
+    setIsAiModalOpen(false);
   }
-  
+
   function handleChange(e) { 
     const { name, value } = e.target; 
     setForm(prev => ({ ...prev, [name]: value })); 
@@ -111,6 +111,13 @@ export default function AddProduct({ onPreview }) {
 
   return (
     <div className="h-full flex flex-col">
+      <AiVoiceModal
+        target="상품의 이름과 설명"
+        exampleText="샤인머스캣 1kg를 만원에 팔 거야"
+        isOpen={isAiModalOpen}
+        setIsOpen={setIsAiModalOpen}
+        onResult={onUseAiFromVoice}
+      />
       <header className="flex items-center p-4 border-b flex-shrink-0">
         <button onClick={() => navigate(-1)} className="p-1"><BackIcon /></button>
         <h1 className="text-lg font-bold text-center flex-grow">메뉴 추가</h1>
@@ -119,7 +126,7 @@ export default function AddProduct({ onPreview }) {
 
       <main className="flex-1 overflow-y-auto p-6 bg-gray-50">
         <div className="space-y-6">
-          <button type="button" onClick={onUseAiFromVoice} className="w-full flex items-center justify-center gap-2 rounded-lg bg-purple-100 text-purple-800 py-3 text-sm font-bold transition-transform hover:scale-[1.02]">
+          <button type="button" onClick={openAiVoiceModal} className="w-full flex items-center justify-center gap-2 rounded-lg bg-purple-100 text-purple-800 py-3 text-sm font-bold transition-transform hover:scale-[1.02]">
             <span role="img" aria-label="sparkles">✨</span>
             {loadingAi ? "AI가 작성 중..." : "인공지능으로 쉽게 작성하기"}
           </button>
