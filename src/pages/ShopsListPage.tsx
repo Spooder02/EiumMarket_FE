@@ -62,7 +62,7 @@ export default function ShopsPage() {
       >
         <div className="relative flex items-center justify-center h-10">
           <button 
-            onClick={() => navigate(-1)} 
+            onClick={() => navigate("/")} 
             className="absolute left-0 p-2 text-white"
             aria-label="뒤로 가기"
           >
