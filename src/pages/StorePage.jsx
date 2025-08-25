@@ -4,7 +4,16 @@ import { apiFetch } from "../lib/api";
 
 // --- 아이콘 SVG 컴포넌트들 (수정 없음) ---
 const StarIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-yellow-400" viewBox="0 0 20 20" fill="currentColor"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>;
-const HeartIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>;
+const HeartOutline = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+  </svg>
+);
+const HeartFilled = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7 text-rose-500" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M11.645 20.91l-.007-.003-.022-.01a15.247 15.247 0 01-.383-.177 25.18 25.18 0 01-4.244-2.637C4.688 16.345 2 13.364 2 9.818 2 7.19 4.064 5 6.7 5c1.54 0 2.884.74 3.8 1.88C11.416 5.74 12.76 5 14.3 5 16.936 5 19 7.19 19 9.818c0 3.546-2.688 6.527-4.989 8.265a25.175 25.175 0 01-4.244 2.637 15.247 15.247 0 01-.383.177l-.022.01-.007.003a.75.75 0 01-.61 0z" />
+  </svg>
+);
 const LocationIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>;
 const ClockIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>;
 const PhoneIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>;
@@ -13,8 +22,11 @@ const BackIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-
 
 export default function StorePage({ onSelectProduct, cartItemCount }) {
   const [activeTab, setActiveTab] = useState('홈');
-  const [storeData, setStoreData] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [storeData, setStoreData] = useState(null); // 가게 데이터를 저장할 state
+  const [loading, setLoading] = useState(true);     // 로딩 상태를 관리할 state
+  const [favorited, setFavorited] = useState(false);
+  const [favLoading, setFavLoading] = useState(false);
+
   const navigate = useNavigate();
   const { marketId, shopId } = useParams();
   
@@ -30,7 +42,10 @@ export default function StorePage({ onSelectProduct, cartItemCount }) {
         setStoreData(data);
         console.log("가게 정보 로딩 성공:", data);
         console.log("가게 이미지 URL:", BACKEND_ENDPOINT + data.imageUrls[0]);
-
+        // 로컬 상태로 중복 POST 방지
+        const key = `fav_${marketId}_${shopId}`;
+        setFavorited(localStorage.getItem(key) === '1');
+        setFavorited(localStorage.getItem(key) === '1');
       } catch (error) {
         console.error("가게 정보를 불러오는 데 실패했습니다.", error.message);
         setStoreData(null);
@@ -41,6 +56,56 @@ export default function StorePage({ onSelectProduct, cartItemCount }) {
 
     fetchStoreData();
   }, [shopId, marketId]);
+
+  async function handleFavoriteToggle() {
+    if (favLoading) return;
+    setFavLoading(true);
+
+    const key = `fav_${marketId}_${shopId}`;
+
+    // 낙관적 업데이트 준비
+    const wasFav = favorited;
+    const prevCount = storeData?.favoriteCount ?? 0;
+
+    // 1) UI 먼저 토글
+    setFavorited(!wasFav);
+    setStoreData((prev) =>
+      prev ? { ...prev, favoriteCount: Math.max(prevCount + (wasFav ? -1 : +1), 0) } : prev
+    );
+
+    try {
+      if (!wasFav) {
+        // 아직 안 찜 → POST
+        const res = await apiFetch(`/markets/${marketId}/shops/${shopId}/favorites`, {
+          method: "POST",
+        });
+        if (!res.ok && res.status !== 409) throw new Error(`POST fail: ${res.status}`);
+        localStorage.setItem(key, "1");
+      } else {
+        // 이미 찜됨 → DELETE
+        const res = await apiFetch(`/markets/${marketId}/shops/${shopId}/favorites`, {
+          method: "DELETE",
+        });
+        if (!res.ok && res.status !== 404) throw new Error(`DELETE fail: ${res.status}`);
+        localStorage.removeItem(key);
+      }
+
+      // 메인 “자주 찾는 가게” 즉시 반영 신호
+      try {
+        window.dispatchEvent(new Event("favorites:changed"));
+      } catch {}
+    } catch (e) {
+      console.error(e);
+      // 2) 실패 → UI 롤백
+      setFavorited(wasFav);
+      setStoreData((prev) =>
+        prev ? { ...prev, favoriteCount: Math.max(prevCount, 0) } : prev
+      );
+      alert("찜 처리에 실패했어요. 잠시 후 다시 시도해주세요.");
+    } finally {
+      setFavLoading(false);
+    }
+  }
 
   if (loading) {
     return <div className="flex justify-center items-center h-full">가게 정보를 불러오는 중...</div>;
@@ -81,7 +146,15 @@ export default function StorePage({ onSelectProduct, cartItemCount }) {
           <div className="p-4">
             <div className="flex justify-between items-center">
               <h1 className="text-2xl font-bold">{storeData.name}</h1>
-              <HeartIcon />
+              <button
+                onClick={handleFavoriteToggle}
+                disabled={favLoading}
+                aria-label={favorited ? "찜 취소" : "찜하기"}
+                title={favorited ? "찜 취소" : "찜하기"}
+                className={`rounded-full p-1.5 active:scale-95 ${favorited ? "text-rose-500" : "text-gray-400"} disabled:opacity-60`}
+              >
+                {favorited ? <HeartFilled /> : <HeartOutline />}
+              </button>
             </div>
             <div className="flex items-center mt-1 text-sm">
               <StarIcon />

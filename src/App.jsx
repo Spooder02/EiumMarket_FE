@@ -67,7 +67,7 @@ export default function App() {
             <Route path="/" element={<MainPage />} />
             <Route path="/market-setting" element={<MarketSettingPage />} />
             <Route path="/markets/:marketId">
-              <Route path="shops" element={<ShopsListPage />} />
+              <Route path="/markets/:marketId/shops" element={<ShopsListPage />} />
               <Route
                 path="shops/:shopId"
                 element={
