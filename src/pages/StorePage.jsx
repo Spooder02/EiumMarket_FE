@@ -1,8 +1,9 @@
+// src/pages/StorePage.jsx
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { apiFetch } from "../lib/api";
 
-// --- 아이콘 SVG 컴포넌트들 (수정 없음) ---
+// --- 아이콘 SVG 컴포넌트들 (기존과 동일) ---
 const StarIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-yellow-400" viewBox="0 0 20 20" fill="currentColor"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>;
 const HeartIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>;
 const LocationIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>;
@@ -11,49 +12,40 @@ const PhoneIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w
 const CartIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>;
 const BackIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>;
 
+
 export default function StorePage({ onSelectProduct, cartItemCount }) {
   const [activeTab, setActiveTab] = useState('홈');
-  const [storeData, setStoreData] = useState(null); // 가게 데이터를 저장할 state
-  const [loading, setLoading] = useState(true);     // 로딩 상태를 관리할 state
+  const [storeData, setStoreData] = useState(null);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const { marketId, shopId } = useParams();
   
   const BACKEND_ENDPOINT = import.meta.env.VITE_BACKEND_ENDPOINT;
 
-  // useEffect를 사용해 컴포넌트가 처음 렌더링될 때 API를 호출합니다.
   useEffect(() => {
     const fetchStoreData = async () => {
       try {
-        setLoading(true); // 데이터 불러오기 시작
-        // Vite 프록시 설정을 이용해 API를 호출합니다.
+        setLoading(true);
         const response = await fetch(`/api/markets/${marketId}/shops/${shopId}`);
-        
         if (!response.ok) {
           throw new Error(`서버 에러: ${response.status}`);
         }
-        
         const data = await response.json();
-        setStoreData(data); // 성공적으로 받아온 데이터를 state에 저장
-        console.log("가게 정보 로딩 성공:", data);
-        console.log("가게 이미지 URL:", BACKEND_ENDPOINT + data.imageUrls[0]);
-
+        setStoreData(data);
       } catch (error) {
         console.error("가게 정보를 불러오는 데 실패했습니다.", error);
-        setStoreData(null); // 에러 발생 시 데이터를 비움
+        setStoreData(null);
       } finally {
-        setLoading(false); // 데이터 불러오기 완료
+        setLoading(false);
       }
     };
-
     fetchStoreData();
-  }, [shopId]); // shopId가 바뀔 때마다 다시 데이터를 불러옵니다.
+  }, [marketId, shopId]);
 
-  // --- 로딩 중일 때 보여줄 화면 ---
   if (loading) {
     return <div className="flex justify-center items-center h-full">가게 정보를 불러오는 중...</div>;
   }
 
-  // --- 데이터가 없거나 에러가 발생했을 때 보여줄 화면 ---
   if (!storeData) {
     return (
       <div className="flex flex-col items-center justify-center h-full">
@@ -82,10 +74,11 @@ export default function StorePage({ onSelectProduct, cartItemCount }) {
         <div className="flex-shrink-0">
           <div className="w-full h-48 bg-gray-200">
             <img
-            src={BACKEND_ENDPOINT + storeData.imageUrls[0].replace(/[[\]"]/g, '')} 
-            alt={storeData.name}
-            className="w-full h-full object-cover" />
-            </div>
+              src={BACKEND_ENDPOINT + storeData.imageUrls[0].replace(/[[\]"]/g, '')}
+              alt={storeData.name}
+              className="w-full h-full object-cover"
+            />
+          </div>
           <div className="p-4">
             <div className="flex justify-between items-center">
               <h1 className="text-2xl font-bold">{storeData.name}</h1>
@@ -93,14 +86,20 @@ export default function StorePage({ onSelectProduct, cartItemCount }) {
             </div>
             <div className="flex items-center mt-1 text-sm">
               <StarIcon />
-              <span className="font-bold ml-1">{storeData.favoriteCount}</span> {/* favoriteCount로 변경 */}
-              <span className="text-gray-500 ml-1">(리뷰 기능 추가 필요)</span>
+              <span className="font-bold ml-1">{storeData.favoriteCount}</span>
+              {/* 리뷰 개수를 보여주고, 클릭하면 리뷰 페이지로 이동 */}
+              <button 
+                onClick={() => navigate(`/markets/${marketId}/shops/${shopId}/reviews`)} 
+                className="text-gray-500 ml-1 hover:underline"
+              >
+                (리뷰 {storeData.reviews?.length || 0}개)
+              </button>
             </div>
           </div>
           <div className="flex justify-around border-b px-4">
             <TabButton name="홈" />
-            <TabButton name="지도" />
             <TabButton name="메뉴" />
+            <TabButton name="리뷰" /> {/* 리뷰 탭 추가 */}
           </div>
         </div>
 
@@ -116,11 +115,6 @@ export default function StorePage({ onSelectProduct, cartItemCount }) {
               </div>
             </div>
           }
-          {activeTab === '지도' && 
-            <div className="p-4 text-center text-gray-500">
-              지도 기능은 준비 중입니다.
-            </div>
-          }
           {activeTab === '메뉴' && (
             <ul className="divide-y">
               {storeData.items.map((item, index) => (
@@ -131,12 +125,24 @@ export default function StorePage({ onSelectProduct, cartItemCount }) {
                     <div className="font-bold text-base">{item.price.toLocaleString()}원</div>
                   </div>
                   <div className="w-24 h-24 rounded-md overflow-hidden bg-gray-200 flex-shrink-0">
-                    <img src={BACKEND_ENDPOINT+item.imageUrls[0]} alt={item.name} className="w-full h-full object-cover" />
+                    <img src={BACKEND_ENDPOINT + item.imageUrls[0]} alt={item.name} className="w-full h-full object-cover" />
                   </div>
                 </li>
               ))}
             </ul>
           )}
+          {/* 리뷰 탭 선택 시, 리뷰 페이지로 이동 */}
+          {activeTab === '리뷰' && 
+            <div className="p-4 text-center">
+              <p className="mb-4">손님들의 생생한 후기를 확인해보세요!</p>
+              <button
+                onClick={() => navigate(`/markets/${marketId}/shops/${shopId}/reviews`)}
+                className="px-4 py-2 rounded-lg bg-emerald-500 text-white font-semibold"
+              >
+                리뷰 전체 보기
+              </button>
+            </div>
+          }
         </main>
       </div>
 

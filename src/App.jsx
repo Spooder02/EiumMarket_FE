@@ -8,7 +8,9 @@ import AddStore from "./pages/AddStore";
 import StorePage from "./pages/StorePage";
 import CartPage from "./pages/CartPage";
 import CheckoutPage from "./pages/CheckoutPage";
-import SearchResultsPage from "./pages/SearchResultsPage"; // 새로 추가
+import SearchResultsPage from "./pages/SearchResultsPage";
+import AddReviewPage from "./pages/AddReviewPage"; // 새로 추가
+import ReviewsPage from "./pages/ReviewsPage"; // 새로 추가
 import ProductDetailModal from "./components/modals/ProductDetailModal";
 import ProductPreview from "./pages/ProductPreview";
 import ShopsListPage from "./pages/ShopsListPage";
@@ -57,7 +59,6 @@ export default function App() {
 
   const handlePreview = (productData) => {
     setProductDataForPreview(productData);
-    // The actual page navigation is handled by useNavigate in each component.
   };
 
   return (
@@ -81,11 +82,15 @@ export default function App() {
                   />
                 }
               />
+              {/* 리뷰 목록 페이지 라우트 추가 */}
+              <Route path="shops/:shopId/reviews" element={<ReviewsPage />} />
             </Route>
             <Route
               path="/add-product"
               element={<AddProduct onPreview={handlePreview} />}
             />
+            {/* 리뷰 작성 페이지 라우트 추가 */}
+            <Route path="/add-review" element={<AddReviewPage />} />
             {productDataForPreview && (
               <Route
                 path="/preview"
@@ -110,7 +115,7 @@ export default function App() {
               path="/checkout" 
               element={<CheckoutPage cartItems={cart} />} 
             />
-            <Route path="/search-results" element={<SearchResultsPage />} /> {/* 새로 추가 */}
+            <Route path="/search-results" element={<SearchResultsPage />} />
           </Routes>
         </BrowserRouter>
 
