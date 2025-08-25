@@ -18,7 +18,7 @@ export default defineConfig({
         // 요청 주소에서 '/api' 부분을 제거하고 보냅니다.
         rewrite: (path) => path.replace(/^\/api/, ''),
       },
-      // '/search' 경로에 대한 프록시 추가
+      // '/search' 경로에 대한 프록시를 추가합니다.
       '/search': {
         target: 'https://geonnie-be.space',
         changeOrigin: true,
