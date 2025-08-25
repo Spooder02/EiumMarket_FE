@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react'; // useEffect를 import 합니다.
+import { useState, useEffect, useRef } from 'react';
 import micIcon from '../../assets/mic.png';
 
 // 닫기 아이콘 컴포넌트 (임시)
@@ -41,7 +41,7 @@ export default function AiVoiceModal({ target, isOpen, setIsOpen, onResult, exam
             const response = await fetch(apiUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload) // JSON.stringify로 객체를 문자열로 변환
+                body: JSON.stringify(payload)
             });
 
             if (!response.ok) {
@@ -75,6 +75,8 @@ export default function AiVoiceModal({ target, isOpen, setIsOpen, onResult, exam
     const sendAudioToClova = async (audioBlob) => {
         const clientId = import.meta.env.VITE_NAVER_VOICE_CLIENT_ID; 
         const clientSecret = import.meta.env.VITE_NAVER_VOICE_CLIENT_SECRET;
+        
+        // ✅ Vite 프록시 설정에 맞게 경로를 수정합니다.
         const apiUrl = '/naver-api/recog/v1/stt?lang=Kor';
 
         console.log('Naver Clova API로 음성 데이터를 전송합니다...');
@@ -99,7 +101,7 @@ export default function AiVoiceModal({ target, isOpen, setIsOpen, onResult, exam
             
             if (result.text) {
                 console.log('인식된 텍스트:', result.text);
-                sendTextToGemini(result.text); // Gemini로 텍스트 전달
+                sendTextToGemini(result.text);
             } else {
                 console.log('텍스트를 인식하지 못했습니다. 응답:', result);
             }
