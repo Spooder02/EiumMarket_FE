@@ -52,7 +52,6 @@ export default function MainPage() {
   };
 
   // 라우트 변경 시 marketId도 동기화
->>>>>>> main
   useEffect(() => {
     setMarket(localStorage.getItem("currentMarketName") || "");
     setMarketId(localStorage.getItem("currentMarketId") || "");
