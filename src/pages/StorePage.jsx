@@ -4,8 +4,16 @@ import { apiFetch } from "../lib/api";
 
 // --- 아이콘 SVG 컴포넌트들 (수정 없음) ---
 const StarIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-yellow-400" viewBox="0 0 20 20" fill="currentColor"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>;
-const HeartIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>;
-const LocationIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>;
+const HeartOutline = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+  </svg>
+);
+const HeartFilled = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M11.645 20.91l-.007-.003-.022-.01a15.247 15.247 0 01-.383-.177 25.18 25.18 0 01-4.244-2.637C4.688 16.345 2 13.364 2 9.818 2 7.19 4.064 5 6.7 5c1.54 0 2.884.74 3.8 1.88C11.416 5.74 12.76 5 14.3 5 16.936 5 19 7.19 19 9.818c0 3.546-2.688 6.527-4.989 8.265a25.175 25.175 0 01-4.244 2.637 15.247 15.247 0 01-.383.177l-.022.01-.007.003a.75.75 0 01-.61 0z" />
+  </svg>
+);const LocationIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>;
 const ClockIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>;
 const PhoneIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>;
 const CartIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>;
@@ -15,6 +23,7 @@ export default function StorePage({ onSelectProduct, cartItemCount }) {
   const [activeTab, setActiveTab] = useState('홈');
   const [storeData, setStoreData] = useState(null); // 가게 데이터를 저장할 state
   const [loading, setLoading] = useState(true);     // 로딩 상태를 관리할 state
+  const [favorited, setFavorited] = useState(false);
   const navigate = useNavigate();
   const { marketId, shopId } = useParams();
   
@@ -36,7 +45,8 @@ export default function StorePage({ onSelectProduct, cartItemCount }) {
         setStoreData(data); // 성공적으로 받아온 데이터를 state에 저장
         console.log("가게 정보 로딩 성공:", data);
         console.log("가게 이미지 URL:", BACKEND_ENDPOINT + data.imageUrls[0]);
-
+        const key = `fav_${marketId}_${shopId}`;
+        setFavorited(localStorage.getItem(key) === '1');
       } catch (error) {
         console.error("가게 정보를 불러오는 데 실패했습니다.", error);
         setStoreData(null); // 에러 발생 시 데이터를 비움
@@ -46,7 +56,20 @@ export default function StorePage({ onSelectProduct, cartItemCount }) {
     };
 
     fetchStoreData();
-  }, [shopId]); // shopId가 바뀔 때마다 다시 데이터를 불러옵니다.
+  }, [shopId, marketId]); // shopId가 바뀔 때마다 다시 데이터를 불러옵니다.
+
+  async function handleFavorite() {
+    if (favorited) return; // 이미 찜했으면 중복 방지
+    try {
+      await apiFetch(`/markets/${marketId}/shops/${shopId}/favorites`, { method: 'POST' });
+      setFavorited(true);
+      setStoreData((prev) => prev ? { ...prev, favoriteCount: (prev.favoriteCount ?? 0) + 1 } : prev);
+      localStorage.setItem(`fav_${marketId}_${shopId}`, '1');
+    } catch (e) {
+      console.error('찜하기 실패:', e);
+      alert('찜하기에 실패했습니다. 잠시 후 다시 시도해주세요.');
+    }
+  }
 
   // --- 로딩 중일 때 보여줄 화면 ---
   if (loading) {

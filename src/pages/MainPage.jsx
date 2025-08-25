@@ -125,22 +125,22 @@ export default function MainPage() {
     setOpen(false);
   }
 
-  const popular = [
-    {
-      name: "숙이 떡집",
-      desc: "전통 떡과 한과 전문점",
-      distance: "1.4km",
-      open: true,
-      emoji: "🍡",
-    },
-    {
-      name: "돌산 족발",
-      desc: "신선한 족발과 보쌈 전문",
-      distance: "1.2km",
-      open: true,
-      emoji: "🍖",
-    },
-  ];
+  // const popular = [
+  //   {
+  //     name: "숙이 떡집",
+  //     desc: "전통 떡과 한과 전문점",
+  //     distance: "1.4km",
+  //     open: true,
+  //     emoji: "🍡",
+  //   },
+  //   {
+  //     name: "돌산 족발",
+  //     desc: "신선한 족발과 보쌈 전문",
+  //     distance: "1.2km",
+  //     open: true,
+  //     emoji: "🍖",
+  //   },
+  // ];
   const categories = [
     { name: "숙이 떡집", emoji: "🍡", bg: "bg-orange-100" },
     { name: "돌산 족발", emoji: "🍖", bg: "bg-pink-100" },
@@ -321,32 +321,7 @@ export default function MainPage() {
                   전체보기
                 </Link>
               </div>
-              <div className="grid grid-cols-2 gap-[14px]">
-                {popular.map((s) => (
-                  <Link
-                    to="/store"
-                    key={s.name}
-                    className="block rounded-[18px] bg-white shadow p-3.5 hover:bg-gray-50 transition-colors"
-                  >
-                    <div className="w-12 h-12 rounded-[14px] bg-rose-50 flex items-center justify-center mb-2.5">
-                      <span className="text-[22px]">{s.emoji}</span>
-                    </div>
-                    <div className="font-extrabold mb-1">{s.name}</div>
-                    <div className="text-[13px] text-slate-500 leading-[1.35] h-[34px] overflow-hidden">
-                      {s.desc}
-                    </div>
-                    <div className="flex items-center gap-2 text-[12px] text-slate-500 mt-2">
-                      <span>{s.distance}</span>
-                      {s.open && (
-                        <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 text-emerald-600 font-bold px-2 py-0.5">
-                          <span className="inline-block size-2 rounded-full bg-emerald-500" />
-                          현재 영업중
-                        </span>
-                      )}
-                    </div>
-                  </Link>
-                ))}
-              </div>
+              <FrequentStores marketId={marketId} limit={6} />
             </section>
 
             {/* 카테고리 */}
