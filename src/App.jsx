@@ -10,7 +10,7 @@ import CartPage from "./pages/CartPage";
 import CheckoutPage from "./pages/CheckoutPage"; // 새로 추가
 import ProductDetailModal from "./components/modals/ProductDetailModal";
 import ProductPreview from "./pages/ProductPreview";
-import ShopsPage from "./pages/ShopsPage";
+import ShopsListPage from "./pages/ShopsListPage";
 
 export default function App() {
   const [cart, setCart] = useState([]);
@@ -67,7 +67,7 @@ export default function App() {
             <Route path="/" element={<MainPage />} />
             <Route path="/market-setting" element={<MarketSettingPage />} />
             <Route path="/markets/:marketId">
-              <Route path="shops" element={<ShopsPage />} />
+              <Route path="shops" element={<ShopsListPage />} />
               <Route
                 path="shops/:shopId"
                 element={
@@ -91,7 +91,10 @@ export default function App() {
                 element={<ProductPreview productData={productDataForPreview} />}
               />
             )}
-            <Route path="/add-store" element={<AddStore />} />
+            <Route
+              path="/add-store"
+              element={<AddStore />}
+            />
             <Route
               path="/cart"
               element={

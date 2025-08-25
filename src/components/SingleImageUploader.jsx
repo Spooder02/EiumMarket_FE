@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 // Camera Icon SVG Component
 function CameraIcon() {
@@ -10,8 +10,14 @@ function CameraIcon() {
   );
 }
 
-export default function SingleImageUploader({ onFileChange, label = "대표 이미지" }) {
+export default function SingleImageUploader({ onFileChange, label = "대표 이미지", aiPreview = null }) {
   const [preview, setPreview] = useState(null);
+
+  useEffect(() => {
+    if (aiPreview) {
+      setPreview(aiPreview);
+    }
+  }, [aiPreview]);
 
   function handleChange(e) {
     const file = e.target.files[0];

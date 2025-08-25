@@ -12,7 +12,7 @@ const CartIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-
 const BackIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>;
 
 export default function StorePage({ onSelectProduct, cartItemCount }) {
-  const [activeTab, setActiveTab] = useState('메뉴');
+  const [activeTab, setActiveTab] = useState('홈');
   const [storeData, setStoreData] = useState(null); // 가게 데이터를 저장할 state
   const [loading, setLoading] = useState(true);     // 로딩 상태를 관리할 state
   const navigate = useNavigate();
@@ -80,7 +80,12 @@ export default function StorePage({ onSelectProduct, cartItemCount }) {
       </button>
       <div className="flex-1 flex flex-col overflow-hidden">
         <div className="flex-shrink-0">
-          <div className="w-full h-48 bg-gray-200"><img src={BACKEND_ENDPOINT+storeData.imageUrls[0]} alt={storeData.name} className="w-full h-full object-cover" /></div>
+          <div className="w-full h-48 bg-gray-200">
+            <img
+            src={BACKEND_ENDPOINT + storeData.imageUrls[0].replace(/[[\]"]/g, '')} 
+            alt={storeData.name}
+            className="w-full h-full object-cover" />
+            </div>
           <div className="p-4">
             <div className="flex justify-between items-center">
               <h1 className="text-2xl font-bold">{storeData.name}</h1>

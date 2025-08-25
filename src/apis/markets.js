@@ -66,13 +66,27 @@ export async function createMarket({
     imageUrls,
   };
 
+  console.log(payload)
+  
+  const formData = new FormData();
+
+  for (const key in payload) {
+    if (Object.prototype.hasOwnProperty.call(payload, key)) {
+      const value = payload[key];
+
+      if (Array.isArray(value)) {
+        formData.append(key, JSON.stringify(value));
+      } else {
+        formData.append(key, value);
+      }
+    }
+  }
+
   const res = await apiFetch(`/markets`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  });
+    body: formData
+  })
 
-  // 일부 서버가 중복 생성 시 409를 줄 수 있음 → 그 경우엔 다시 조회해서 ID 반환
   if (res.status === 409) {
     const id = await findMarketId({ name, address });
     if (id) return { marketId: id };
@@ -83,7 +97,7 @@ export async function createMarket({
     throw new Error(`POST /markets 실패: ${res.status} ${text}`);
   }
 
-  return res.json(); // { marketId, ... }
+  return res.json(); 
 }
 
 /**
