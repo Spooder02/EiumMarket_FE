@@ -1,3 +1,4 @@
+// vite.config.js
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
@@ -16,6 +17,11 @@ export default defineConfig({
         changeOrigin: true, // cross-origin 요청을 위해 필요한 설정
         // 요청 주소에서 '/api' 부분을 제거하고 보냅니다.
         rewrite: (path) => path.replace(/^\/api/, ''),
+      },
+      // '/search' 경로에 대한 프록시를 추가합니다.
+      '/search': {
+        target: 'https://geonnie-be.space',
+        changeOrigin: true,
       },
       '/naver-api': {
         target: 'https://naveropenapi.apigw.ntruss.com',

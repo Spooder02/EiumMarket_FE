@@ -23,10 +23,12 @@ export default function MainPage() {
   const location = useLocation();
   const [notifOpen, setNotifOpen] = useState(false);
   const { mode, isAdmin, toggle } = useAdminMode();
+  const [searchQuery, setSearchQuery] = useState("");
 
   const [market, setMarket] = useState(
     () => localStorage.getItem("currentMarketName") || ""
   );
+  // marketId 상태 추가
   const [marketId, setMarketId] = useState(
     () => localStorage.getItem("currentMarketId") || ""
   );
@@ -34,12 +36,26 @@ export default function MainPage() {
   const [open, setOpen] = useState(false);
   const menuRef = useRef(null);
 
+
   // 라우트 변경 시 최신값 동기화
+  // 검색 핸들러 수정
+  const handleSearch = (e) => {
+    if (e.key === 'Enter' && searchQuery.trim() !== '') {
+      // 시장이 선택되었는지 확인
+      if (!marketId) {
+        alert("먼저 검색할 시장을 선택해주세요.");
+        return;
+      }
+      // marketId를 포함하여 검색 결과 페이지로 이동
+      navigate(`/markets/${marketId}/search-results?keyword=${searchQuery}`);
+    }
+  };
+
+  // 라우트 변경 시 marketId도 동기화
+>>>>>>> main
   useEffect(() => {
-    const storedMarketName = localStorage.getItem("currentMarketName") || "";
-    const storedMarketId = localStorage.getItem("currentMarketId") || "";
-    setMarket(storedMarketName);
-    setMarketId(storedMarketId);
+    setMarket(localStorage.getItem("currentMarketName") || "");
+    setMarketId(localStorage.getItem("currentMarketId") || "");
     setMyMarkets(readMyMarkets());
   }, [location.pathname, location.search]);
 
@@ -47,7 +63,7 @@ export default function MainPage() {
   useEffect(() => {
     const sync = () => {
       setMarket(localStorage.getItem("currentMarketName") || "");
-      setMarketId(localStorage.getItem("currentMarketId") || "");
+      setMarketId(localStorage.getItem("currentMarketId") || ""); // 동기화 추가
       setMyMarkets(readMyMarkets());
     };
     window.addEventListener("focus", sync);
@@ -57,7 +73,7 @@ export default function MainPage() {
       window.removeEventListener("storage", sync);
     };
   }, []);
-
+  
   // 외부 클릭 → 드롭다운 닫기
   useEffect(() => {
     const onClickOutside = (e) => {
@@ -67,6 +83,7 @@ export default function MainPage() {
     if (open) document.addEventListener("mousedown", onClickOutside);
     return () => document.removeEventListener("mousedown", onClickOutside);
   }, [open]);
+
 
   // 시장 이름이 바뀔 때마다 marketId fetch
   useEffect(() => {
@@ -105,9 +122,11 @@ export default function MainPage() {
       localStorage.setItem("currentMarketId", m.id);
       setMarketId(m.id);
     }
+
     if (m.lat) localStorage.setItem("currentMarketLat", String(m.lat));
     if (m.lng) localStorage.setItem("currentMarketLng", String(m.lng));
     setMarket(m.name);
+    setMarketId(m.id); // marketId 상태 업데이트
     setOpen(false);
   }
 
@@ -117,7 +136,7 @@ export default function MainPage() {
     localStorage.removeItem("currentMarketLat");
     localStorage.removeItem("currentMarketLng");
     setMarket("");
-    setMarketId("");
+    setMarketId(""); // marketId 상태 초기화
     setOpen(false);
   }
 
@@ -229,6 +248,9 @@ export default function MainPage() {
           <input
             className="w-full h-12 rounded-xl border-none outline-none pl-9 pr-3 text-slate-700 bg-white shadow"
             placeholder="오늘의 장보기 시작!"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyDown={handleSearch}
           />
         </div>
       </header>

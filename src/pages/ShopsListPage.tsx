@@ -110,8 +110,8 @@ export default function ShopsListPage() {
         style={{ backgroundColor: "#93DA97" }}
       >
         <div className="relative flex items-center justify-center h-10">
-          <button
-            onClick={() => navigate(-1)}
+          <button 
+            onClick={() => navigate("/")} 
             className="absolute left-0 p-2 text-white"
             aria-label="뒤로 가기"
           >

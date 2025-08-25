@@ -26,25 +26,20 @@ export default function StorePage({ onSelectProduct, cartItemCount }) {
   const [loading, setLoading] = useState(true);     // 로딩 상태를 관리할 state
   const [favorited, setFavorited] = useState(false);
   const [favLoading, setFavLoading] = useState(false);
+
   const navigate = useNavigate();
   const { marketId, shopId } = useParams();
   
   const BACKEND_ENDPOINT = import.meta.env.VITE_BACKEND_ENDPOINT;
 
-  // useEffect를 사용해 컴포넌트가 처음 렌더링될 때 API를 호출합니다.
   useEffect(() => {
     const fetchStoreData = async () => {
       try {
-        setLoading(true); // 데이터 불러오기 시작
-        // Vite 프록시 설정을 이용해 API를 호출합니다.
-        const response = await fetch(`/api/markets/${marketId}/shops/${shopId}`);
-        
-        if (!response.ok) {
-          throw new Error(`서버 에러: ${response.status}`);
-        }
+        setLoading(true);
+        const response = await apiFetch(`/markets/${marketId}/shops/${shopId}`);
         
         const data = await response.json();
-        setStoreData(data); // 성공적으로 받아온 데이터를 state에 저장
+        setStoreData(data);
         console.log("가게 정보 로딩 성공:", data);
         console.log("가게 이미지 URL:", BACKEND_ENDPOINT + data.imageUrls[0]);
         // 로컬 상태로 중복 POST 방지
@@ -52,10 +47,10 @@ export default function StorePage({ onSelectProduct, cartItemCount }) {
         setFavorited(localStorage.getItem(key) === '1');
         setFavorited(localStorage.getItem(key) === '1');
       } catch (error) {
-        console.error("가게 정보를 불러오는 데 실패했습니다.", error);
-        setStoreData(null); // 에러 발생 시 데이터를 비움
+        console.error("가게 정보를 불러오는 데 실패했습니다.", error.message);
+        setStoreData(null);
       } finally {
-        setLoading(false); // 데이터 불러오기 완료
+        setLoading(false);
       }
     };
 
@@ -112,12 +107,10 @@ export default function StorePage({ onSelectProduct, cartItemCount }) {
     }
   }
 
-  // --- 로딩 중일 때 보여줄 화면 ---
   if (loading) {
     return <div className="flex justify-center items-center h-full">가게 정보를 불러오는 중...</div>;
   }
 
-  // --- 데이터가 없거나 에러가 발생했을 때 보여줄 화면 ---
   if (!storeData) {
     return (
       <div className="flex flex-col items-center justify-center h-full">
@@ -165,7 +158,7 @@ export default function StorePage({ onSelectProduct, cartItemCount }) {
             </div>
             <div className="flex items-center mt-1 text-sm">
               <StarIcon />
-              <span className="font-bold ml-1">{storeData.favoriteCount}</span> {/* favoriteCount로 변경 */}
+              <span className="font-bold ml-1">{storeData.favoriteCount}</span>
               <span className="text-gray-500 ml-1">(리뷰 기능 추가 필요)</span>
             </div>
           </div>
@@ -194,23 +187,45 @@ export default function StorePage({ onSelectProduct, cartItemCount }) {
             </div>
           }
           {activeTab === '메뉴' && (
-            <ul className="divide-y">
-              {storeData.items.map((item, index) => (
-                <li key={index} onClick={() => onSelectProduct(item)} className="flex items-start justify-between p-4 cursor-pointer hover:bg-gray-50">
-                  <div className="flex-grow pr-4">
-                    <h3 className="font-bold text-lg">{item.name}</h3>
-                    <p className="text-sm text-gray-500 mt-1 mb-2">{item.description}</p>
-                    <div className="font-bold text-base">{item.price.toLocaleString()}원</div>
-                  </div>
-                  <div className="w-24 h-24 rounded-md overflow-hidden bg-gray-200 flex-shrink-0">
-                    <img src={BACKEND_ENDPOINT+item.imageUrls[0]} alt={item.name} className="w-full h-full object-cover" />
-                  </div>
-                </li>
-              ))}
-            </ul>
+            storeData.items.length > 0 ? (
+              <ul className="divide-y">
+                {storeData.items.map((item, index) => (
+                  <li key={index} onClick={() => onSelectProduct(item)} className="flex items-start justify-between p-4 cursor-pointer hover:bg-gray-50">
+                    <div className="flex-grow pr-4">
+                      <h3 className="font-bold text-lg">{item.name}</h3>
+                      <p className="text-sm text-gray-500 mt-1 mb-2">{item.description}</p>
+                      <div className="font-bold text-base">{item.price.toLocaleString()}원</div>
+                    </div>
+                    <div className="w-24 h-24 rounded-md overflow-hidden bg-gray-200 flex-shrink-0">
+                      <img src={BACKEND_ENDPOINT+item.imageUrls[0]} alt={item.name} className="w-full h-full object-cover" />
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <div className="p-4 text-center text-gray-500">
+                <p className="font-bold">등록된 메뉴가 없습니다.</p>
+              </div>
+            )
           )}
         </main>
       </div>
+
+      {activeTab === '메뉴' && (
+        <div className="absolute bottom-6 right-6">
+          <button 
+            onClick={() => navigate(`/add-product?marketId=${marketId}&shopId=${shopId}`)}
+            className="w-14 h-14 rounded-full shadow-xl active:scale-95 transition-transform"
+            style={{ backgroundColor: '#93DA97' }}
+            aria-label="상품 등록"
+            title="상품 등록"
+          >
+            <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-white text-3xl font-bold">
+              +
+            </span>
+          </button>
+        </div>
+      )}
 
       {cartItemCount > 0 && (
         <div className="absolute bottom-6 right-6">
