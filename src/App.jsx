@@ -7,7 +7,8 @@ import AddProduct from "./pages/AddProduct";
 import AddStore from "./pages/AddStore";
 import StorePage from "./pages/StorePage";
 import CartPage from "./pages/CartPage";
-import CheckoutPage from "./pages/CheckoutPage"; // 새로 추가
+import CheckoutPage from "./pages/CheckoutPage";
+import SearchResultsPage from "./pages/SearchResultsPage"; // 새로 추가
 import ProductDetailModal from "./components/modals/ProductDetailModal";
 import ProductPreview from "./pages/ProductPreview";
 import ShopsListPage from "./pages/ShopsListPage";
@@ -105,11 +106,11 @@ export default function App() {
                 />
               }
             />
-            {/* checkout 라우트를 추가하고 cart 상태를 props로 전달합니다. */}
             <Route 
               path="/checkout" 
               element={<CheckoutPage cartItems={cart} />} 
             />
+            <Route path="/search-results" element={<SearchResultsPage />} /> {/* 새로 추가 */}
           </Routes>
         </BrowserRouter>
 
