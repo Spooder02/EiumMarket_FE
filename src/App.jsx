@@ -9,6 +9,8 @@ import StorePage from "./pages/StorePage";
 import CartPage from "./pages/CartPage";
 import CheckoutPage from "./pages/CheckoutPage";
 import SearchResultsPage from "./pages/SearchResultsPage";
+import AddReviewPage from "./pages/AddReviewPage"; // 새로 추가
+import ReviewsPage from "./pages/ReviewsPage"; // 새로 추가
 import ProductDetailModal from "./components/modals/ProductDetailModal";
 import ProductPreview from "./pages/ProductPreview";
 import ShopsListPage from "./pages/ShopsListPage";
@@ -67,7 +69,7 @@ export default function App() {
             <Route path="/" element={<MainPage />} />
             <Route path="/market-setting" element={<MarketSettingPage />} />
             <Route path="/markets/:marketId">
-              <Route path="/markets/:marketId/shops" element={<ShopsListPage />} />
+              <Route path="shops" element={<ShopsListPage />} />
               <Route
                 path="shops/:shopId"
                 element={
@@ -80,13 +82,16 @@ export default function App() {
                   />
                 }
               />
-              {/* 검색 결과 페이지 라우트 수정 */}
+              {/* 리뷰 목록 페이지 라우트 추가 */}
+              <Route path="shops/:shopId/reviews" element={<ReviewsPage />} />
               <Route path="search-results" element={<SearchResultsPage />} />
             </Route>
             <Route
               path="/add-product"
               element={<AddProduct onPreview={handlePreview} />}
             />
+            {/* 리뷰 작성 페이지 라우트 추가 */}
+            <Route path="/add-review" element={<AddReviewPage />} />
             {productDataForPreview && (
               <Route
                 path="/preview"
