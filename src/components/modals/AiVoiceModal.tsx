@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import micIcon from '../../assets/mic.png';
-import axios from 'axios'; // axios를 import 합니다.
+import axios from 'axios';
 
 // 닫기 아이콘 컴포넌트 (임시)
 export const XIcon = () => (
@@ -58,12 +58,12 @@ export default function AiVoiceModal({ target, isOpen, setIsOpen, onResult, exam
         }
     };
 
-    // 클로바 음성인식 API 호출 함수
     const sendAudioToClova = async (audioBlob) => {
         const clientId = import.meta.env.VITE_NAVER_VOICE_CLIENT_ID; 
         const clientSecret = import.meta.env.VITE_NAVER_VOICE_CLIENT_SECRET;
         
-        const apiUrl = '/naver-api/recog/v1/stt?lang=Kor';
+        // ✅ Naver Clova API 문서를 참고하여 전체 URL로 변경했습니다.
+        const apiUrl = 'https://naveropenapi.apigw.ntruss.com/recog/v1/stt?lang=Kor';
 
         console.log('Naver Clova API로 음성 데이터를 전송합니다...');
         try {
