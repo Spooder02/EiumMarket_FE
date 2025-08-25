@@ -28,7 +28,10 @@ export default function FrequentStores({ marketId, limit = 6 }) {
     let cancelled = false;
     try {
       setLoading(true);
-      const res = await fetch(`/api/markets/${marketId}/shops`);
+      
+      // ✅ VITE_BACKEND_ENDPOINT를 직접 사용하도록 수정했습니다.
+      const res = await fetch(`${BACKEND_ENDPOINT}/markets/${marketId}/shops`);
+      
       if (!res.ok) throw new Error(`상점 조회 실패 ${res.status}`);
       const data = await res.json();
       const favSet = getFavoriteIds();
@@ -50,7 +53,7 @@ export default function FrequentStores({ marketId, limit = 6 }) {
     return () => {
       cancelled = true;
     };
-  }, [marketId, limit, getFavoriteIds]);
+  }, [marketId, limit, getFavoriteIds, BACKEND_ENDPOINT]); // ✅ BACKEND_ENDPOINT를 의존성 배열에 추가
 
   useEffect(() => {
     refresh();

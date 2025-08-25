@@ -37,8 +37,8 @@ export default function ShopsListPage() {
 
   // --- 쿼리: categoryId(우선), category(보조) ---
   const sp = new URLSearchParams(location.search);
-  const selectedCategoryId = sp.get("categoryId");    // 예: "3"
-  const selectedCategoryName = sp.get("category");    // 예: "과일"
+  const selectedCategoryId = sp.get("categoryId");
+  const selectedCategoryName = sp.get("category");
 
   // 응답에서 카테고리 정보 추출(필드명 다양성 대응)
   function pickCategoryId(shop: any): string {
@@ -69,7 +69,8 @@ export default function ShopsListPage() {
       }
       try {
         setLoading(true);
-        const url = `/api/markets/${marketId}/shops`;
+        // ✅ /api를 제거하고 BACKEND_ENDPOINT를 직접 사용하도록 수정했습니다.
+        const url = `${BACKEND_ENDPOINT}/markets/${marketId}/shops`;
         const response = await fetch(url);
         if (!response.ok) throw new Error(`서버 에러: ${response.status}`);
         const data = await response.json();
@@ -82,7 +83,7 @@ export default function ShopsListPage() {
       }
     };
     fetchShops();
-  }, [marketId /*, selectedCategoryId*/]);
+  }, [marketId, BACKEND_ENDPOINT]); // ✅ BACKEND_ENDPOINT를 의존성 배열에 추가
 
   // --- 클라이언트 필터 ---
   const filteredShops = useMemo(() => {
