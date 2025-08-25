@@ -28,7 +28,7 @@ export default function FrequentStores({ marketId, limit = 6 }) {
     let cancelled = false;
     try {
       setLoading(true);
-      const res = await fetch(`/api/markets/${marketId}/shops`);
+      const res = await fetch(`/markets/${marketId}/shops`);
       if (!res.ok) throw new Error(`상점 조회 실패 ${res.status}`);
       const data = await res.json();
       const favSet = getFavoriteIds();
