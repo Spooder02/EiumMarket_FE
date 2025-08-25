@@ -1,4 +1,3 @@
-// src/pages/AddStore.jsx
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import SingleImageUploader from "../components/SingleImageUploader.jsx";
@@ -17,7 +16,7 @@ export default function AddStore() {
 
   const [form, setForm] = useState({
     name: "",
-    categoryId: "", // 선택된 카테고리의 ID를 저장하도록 변경
+    categoryId: "",
     phoneNumber: "",
     openingHours: "",
     floor: "",
@@ -26,12 +25,11 @@ export default function AddStore() {
     image: null,
   });
 
-  const [categories, setCategories] = useState([]); // 카테고리 목록 상태
+  const [categories, setCategories] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [inlineMsg, setInlineMsg] = useState(null);
   const [isAiImageModalOpen, setIsAiImageModalOpen] = useState(false);
   
-  // 로컬 스토리지에서 marketId를 미리 가져옵니다.
   const marketId = localStorage.getItem("currentMarketId");
   const BACKEND_ENDPOINT = import.meta.env.VITE_BACKEND_ENDPOINT;
 
@@ -46,13 +44,12 @@ export default function AddStore() {
     }
   }, [form.name]);
   
-  // marketId가 변경될 때마다 카테고리 목록을 불러옵니다.
   useEffect(() => {
     const fetchCategories = async () => {
       if (!marketId) return;
 
       try {
-        const response = await apiFetch(`/markets/${marketId}/categories`);
+        const response = await apiFetch(`${BACKEND_ENDPOINT}/markets/${marketId}/category`);
         const data = await response.json();
         setCategories(data);
       } catch (error) {
@@ -62,7 +59,7 @@ export default function AddStore() {
     };
 
     fetchCategories();
-  }, [marketId]);
+  }, [marketId, BACKEND_ENDPOINT]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -94,7 +91,6 @@ export default function AddStore() {
       return;
     }
     
-    // 카테고리 선택 유효성 검사 추가
     if (!form.categoryId) {
         setInlineMsg("카테고리를 선택해주세요.");
         return;
@@ -114,7 +110,6 @@ export default function AddStore() {
     formData.append('description', form.description);
     formData.append('address', form.address);
 
-    // categoryIds 배열을 JSON 문자열로 변환하여 FormData에 추가
     const categoryIds = [Number(form.categoryId)];
     categoryIds.forEach(id => {
       formData.append('categoryIds', id);
@@ -143,7 +138,7 @@ export default function AddStore() {
     }
 
     try {
-      const response = await apiFetch(`/markets/${marketId}/shops`, {
+      const response = await apiFetch(`${BACKEND_ENDPOINT}/markets/${marketId}/shops`, {
         method: "POST",
         body: formData,
       });
