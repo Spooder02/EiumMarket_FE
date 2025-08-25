@@ -1,3 +1,4 @@
+// src/App.jsx
 import { useState } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import MainPage from "./pages/MainPage";
@@ -6,6 +7,7 @@ import AddProduct from "./pages/AddProduct";
 import AddStore from "./pages/AddStore";
 import StorePage from "./pages/StorePage";
 import CartPage from "./pages/CartPage";
+import CheckoutPage from "./pages/CheckoutPage"; // 새로 추가
 import ProductDetailModal from "./components/modals/ProductDetailModal";
 import ProductPreview from "./pages/ProductPreview";
 import ShopsPage from "./pages/ShopsPage";
@@ -99,6 +101,11 @@ export default function App() {
                   onRemoveItem={handleRemoveItem}
                 />
               }
+            />
+            {/* checkout 라우트를 추가하고 cart 상태를 props로 전달합니다. */}
+            <Route 
+              path="/checkout" 
+              element={<CheckoutPage cartItems={cart} />} 
             />
           </Routes>
         </BrowserRouter>

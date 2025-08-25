@@ -1,3 +1,4 @@
+// src/pages/CartPage.jsx
 import { useNavigate } from 'react-router-dom';
 
 // --- 아이콘 SVG 컴포넌트들 ---
@@ -59,7 +60,11 @@ export default function CartPage({ cartItems, onUpdateQuantity, onRemoveItem }) 
               <span className="font-semibold">총 주문금액</span>
               <span className="text-2xl font-bold">{totalPrice.toLocaleString()}원</span>
             </div>
-            <button className="w-full bg-emerald-500 text-white font-bold py-3 rounded-lg hover:bg-emerald-600">
+            {/* '주문하기' 버튼 클릭 시 /checkout 페이지로 이동하도록 수정 */}
+            <button 
+              onClick={() => navigate('/checkout')} 
+              className="w-full bg-emerald-500 text-white font-bold py-3 rounded-lg hover:bg-emerald-600"
+            >
               주문하기
             </button>
           </footer>
