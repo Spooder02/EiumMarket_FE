@@ -1,6 +1,6 @@
 // src/pages/SearchResultsPage.jsx
 import { useState, useEffect } from 'react';
-import { useNavigate, useLocation, Link, useParams } from 'react-router-dom'; // useParams 추가
+import { useNavigate, useLocation, Link, useParams } from 'react-router-dom';
 import { apiFetch } from '../lib/api';
 
 const BackIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>;
@@ -10,26 +10,25 @@ export default function SearchResultsPage() {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const location = useLocation();
-  const { marketId } = useParams(); // URL에서 marketId 가져오기
+  const { marketId } = useParams();
   
   const query = new URLSearchParams(location.search).get('keyword');
   const [inputValue, setInputValue] = useState(query || '');
 
   const BACKEND_ENDPOINT = import.meta.env.VITE_BACKEND_ENDPOINT || '';
 
+  // 1. URL의 검색어('query')가 바뀔 때마다 실행되는 부분
   useEffect(() => {
-    // marketId나 query가 없으면 검색하지 않음
     if (!query || !marketId) {
       setLoading(false);
       return;
     }
     
-    setInputValue(query);
+    setInputValue(query); // 입력창의 내용도 현재 검색어로 업데이트
 
     const fetchResults = async () => {
       setLoading(true);
       try {
-        // 수정된 API 엔드포인트로 요청
         const response = await apiFetch(`/markets/${marketId}/shops/search?keyword=${encodeURIComponent(query)}`);
         if (!response.ok) {
           throw new Error('검색 API 호출에 실패했습니다.');
@@ -45,10 +44,12 @@ export default function SearchResultsPage() {
     };
 
     fetchResults();
-  }, [query, marketId]); // marketId도 의존성 배열에 추가
+  }, [query, marketId]); // 'query'가 바뀌면 재검색!
 
+  // 2. 입력창에서 엔터를 눌렀을 때 실행되는 함수
   const handleSearch = (e) => {
     if (e.key === 'Enter' && inputValue.trim()) {
+      // 3. 현재 입력된 값('inputValue')으로 URL을 변경 -> 1번 useEffect가 다시 실행됨
       navigate(`/markets/${marketId}/search-results?keyword=${inputValue.trim()}`);
     }
   };
@@ -99,7 +100,7 @@ export default function SearchResultsPage() {
                     {shop.items.map(item => (
                       <div key={item.itemId} className="flex items-center gap-3">
                         {item.imageUrls && item.imageUrls[0] && (
-                          <img src={`${BACKEND_ENDPOINT}${item.imageUrls[0]}`} alt={item.name} className="w-10 h-10 rounded-md object-cover" />
+                          <img src={`${BACKEND_ENDPOINT}${item.imageUrls[0].replace(/[\[\]"]/g, '')}`} alt={item.name} className="w-10 h-10 rounded-md object-cover" />
                         )}
                         <div>
                           <p className="font-semibold text-sm">{item.name}</p>
