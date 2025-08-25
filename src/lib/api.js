@@ -3,10 +3,6 @@
 export const API_BASE =
   import.meta.env.VITE_API_BASE || "https://geonnie-be.space";
 
-/**
- * path는 항상 "/..." 로 시작 (예: "/markets", "/markets/1/shops")
- * 예) apiFetch('/markets?size=50')
- */
 export function apiFetch(path, options = {}) {
   const url = `${API_BASE}${path}`;
   const headers = { Accept: "application/json", ...(options.headers || {}) };
