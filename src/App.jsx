@@ -84,6 +84,7 @@ export default function App() {
               />
               {/* 리뷰 목록 페이지 라우트 추가 */}
               <Route path="shops/:shopId/reviews" element={<ReviewsPage />} />
+              <Route path="search-results" element={<SearchResultsPage />} />
             </Route>
             <Route
               path="/add-product"
@@ -115,7 +116,6 @@ export default function App() {
               path="/checkout" 
               element={<CheckoutPage cartItems={cart} />} 
             />
-            <Route path="/search-results" element={<SearchResultsPage />} />
           </Routes>
         </BrowserRouter>
 
