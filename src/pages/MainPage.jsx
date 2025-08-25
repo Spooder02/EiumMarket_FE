@@ -4,6 +4,7 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import marketImg from "../assets/korean-market-storefront.png";
 import useAdminMode from "../hooks/useAdminMode";
 import ModeToggle from "../components/ModeToggle";
+import { findMarketId } from "../apis/markets";
 
 const MY_MARKETS_KEY = "myMarkets";
 const readMyMarkets = () => {
@@ -33,8 +34,10 @@ export default function MainPage() {
 
   // 라우트 변경 시(시장 설정에서 돌아온 직후 포함) 최신값 동기화
   useEffect(() => {
-    setMarket(localStorage.getItem("currentMarketName") || "");
-    setMarketId(localStorage.getItem("currentMarketId") || "");
+    const storedMarketName = localStorage.getItem("currentMarketName") || "";
+    const storedMarketId = localStorage.getItem("currentMarketId") || "";
+    setMarket(storedMarketName);
+    setMarketId(storedMarketId);
     setMyMarkets(readMyMarkets());
   }, [location.pathname, location.search]);
 
@@ -42,6 +45,7 @@ export default function MainPage() {
   useEffect(() => {
     const sync = () => {
       setMarket(localStorage.getItem("currentMarketName") || "");
+      setMarketId(localStorage.getItem("currentMarketId") || "");
       setMyMarkets(readMyMarkets());
     };
     window.addEventListener("focus", sync);
@@ -62,6 +66,30 @@ export default function MainPage() {
     return () => document.removeEventListener("mousedown", onClickOutside);
   }, [open]);
 
+  // 시장 이름이 변경될 때마다 marketId를 불러오는 로직
+  // 기존 apiFetch 호출 로직을 findMarketId 함수로 대체했습니다.
+  useEffect(() => {
+    const fetchMarketId = async () => {
+      if (!market) {
+        setMarketId("");
+        localStorage.removeItem("currentMarketId");
+        return;
+      }
+      
+      const id = await findMarketId({ name: market });
+
+      if (id) {
+        setMarketId(id);
+        localStorage.setItem("currentMarketId", id);
+      } else {
+        setMarketId("");
+        localStorage.removeItem("currentMarketId");
+        console.error("선택된 시장의 ID를 찾을 수 없습니다.");
+      }
+    };
+    fetchMarketId();
+  }, [market]);
+
   function goMarketSetting() {
     setOpen(false);
     navigate("/market-setting");
@@ -76,7 +104,10 @@ export default function MainPage() {
   // “선택”: 현재 시장 지정
   function chooseMarket(m) {
     localStorage.setItem("currentMarketName", m.name);
-    if (m.id) localStorage.setItem("currentMarketId", m.id);
+    if (m.id) {
+        localStorage.setItem("currentMarketId", m.id);
+        setMarketId(m.id);
+    }
     if (m.lat) localStorage.setItem("currentMarketLat", String(m.lat));
     if (m.lng) localStorage.setItem("currentMarketLng", String(m.lng));
     setMarket(m.name);
@@ -90,6 +121,7 @@ export default function MainPage() {
     localStorage.removeItem("currentMarketLat");
     localStorage.removeItem("currentMarketLng");
     setMarket("");
+    setMarketId("");
     setOpen(false);
   }
 

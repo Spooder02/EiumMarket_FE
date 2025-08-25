@@ -25,22 +25,39 @@ export async function checkMarketExist({ name, address }) {
 }
 
 /**
- * 목록에서 marketId 찾기 (정확 일치)
- * GET /markets?page=0&size=200
+ * 시장 이름 또는 주소를 검색하여 marketId를 찾습니다.
+ * GET /markets/search?search=keyword
  * @returns {Promise<number|null>}
  */
 export async function findMarketId({ name, address }) {
-  const res = await apiFetch(`/markets?${qs({ page: 0, size: 200 })}`);
-  if (!res.ok) throw new Error(`GET /markets 실패: ${res.status}`);
-  const data = await res.json();
+  const keyword = name || address;
+  if (!keyword) {
+    console.error("검색 키워드가 없습니다.");
+    return null;
+  }
 
+  // URLSearchParams를 사용하여 파라미터를 안전하게 생성합니다.
+  const params = new URLSearchParams();
+  params.append('search', keyword);
+
+  const url = `/markets/search?${params.toString()}`;
+  
+  // 디버깅을 위해 실제로 생성되는 URL을 확인합니다.
+  console.log("실제 검색 요청 URL:", url);
+
+  const res = await apiFetch(url);
+  const id = await res.json().then(data => data.content[0].marketId);
+
+  if (!res.ok) {
+    console.error(`GET /markets/search 실패: ${res.status}`);
+    return null;
+  }
+  
   const norm = (s) => String(s || "").trim();
-  const hit = data?.content?.find(
-    (m) =>
-      (name && norm(m.name) === norm(name)) ||
-      (address && norm(m.address) === norm(address))
-  );
-  return hit?.marketId ?? null;
+  const data = norm(id);
+  console.log(data)
+
+  return data ?? null;
 }
 
 export async function createMarket({
@@ -90,43 +107,36 @@ export async function createMarket({
 }
 
 /**
- * 시장 이름을 기반으로 ID를 찾아 반환합니다.
- * @param {string} name - 찾을 시장의 이름.
- * @returns {Promise<number|null>} 시장 ID 또는 찾을 수 없을 경우 null.
- */
-export async function findMarketIdByName(name) {
-  const res = await apiFetch(`/markets/search?name=${encodeURIComponent(name)}`);
-  
-  if (!res.ok) {
-    return null;
-  }
-
-  const data = await res.json();
-  const foundMarket = data.content?.find(market => market.name === name);
-  
-  return foundMarket?.marketId || null;
-}
-
-
-/**
- * 최종 보증: 존재하면 ID, 없으면 생성 후 ID 반환
+ * 최종 보증: 시장이 존재하면 ID를 반환하고, 없으면 생성 후 ID를 반환합니다.
+ * @param {object} payload - 시장 정보 객체
  * @returns {Promise<number>}
  */
-export async function ensureMarketId(payload /* {name,address,latitude,longitude,...} */) {
+export async function ensureMarketId(payload) {
   const exists = await checkMarketExist(payload);
   
   if (exists) {
-    const id = await findMarketIdByName(payload.name);
-    if (id) return id;
-
-    // 이름으로 못 찾았을 경우, 주소로 재탐색하거나 다른 로직을 추가할 수 있습니다.
-    // 여기서는 간단히 오류를 발생시킵니다.
-    throw new Error("시장 존재는 true지만 marketId 탐색 실패");
+    // 시장이 존재하면, 이름을 통해 marketId를 찾습니다.
+    const id = await findMarketId(payload);
+    if (id) {
+        return id;
+    }
+    
+    // 이 오류는 `checkMarketExist`가 true를 반환했음에도 불구하고,
+    // `findMarketId`가 ID를 찾지 못할 때 발생합니다.
+    throw new Error("시장 존재는 확인됐지만 marketId 탐색 실패");
   }
 
-  // 없으면 생성
+  // 시장이 존재하지 않으면, 새로 생성합니다.
   const created = await createMarket(payload);
-  if (!created?.marketId) throw new Error("시장 생성 응답에 marketId 없음");
+  
+  if (!created?.marketId) {
+    // 생성 응답에 marketId가 없다면, 다시 이름을 통해 찾습니다.
+    const newId = await findMarketId(payload);
+    if (newId) {
+        return newId;
+    }
+    throw new Error("시장 생성 응답에 marketId가 없으며, 재탐색에도 실패했습니다.");
+  }
   
   return created.marketId;
 }
