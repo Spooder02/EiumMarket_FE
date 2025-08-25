@@ -10,12 +10,20 @@ export default function SearchResultsPage() {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const location = useLocation();
+  
+  // URL에서 검색어를 가져옵니다.
   const query = new URLSearchParams(location.search).get('keyword');
+  // 입력창의 상태를 관리할 state를 추가하고, URL의 검색어로 초기화합니다.
+  const [inputValue, setInputValue] = useState(query || '');
+
   const BACKEND_ENDPOINT = import.meta.env.VITE_BACKEND_ENDPOINT;
 
-
+  // 검색 로직
   useEffect(() => {
     if (!query) return;
+
+    // URL의 검색어가 바뀔 때마다 입력창의 값도 업데이트합니다.
+    setInputValue(query);
 
     const fetchResults = async () => {
       setLoading(true);
@@ -26,8 +34,7 @@ export default function SearchResultsPage() {
         }
         const data = await response.json();
         setResults(data.content || []);
-      } catch (error)
- {
+      } catch (error) {
         console.error(error);
         setResults([]);
       } finally {
@@ -36,14 +43,33 @@ export default function SearchResultsPage() {
     };
 
     fetchResults();
-  }, [query]);
+  }, [query]); // useEffect의 의존성 배열에 query를 넣어 URL 변경 시 재검색하도록 합니다.
+
+  // 새로운 검색을 위한 핸들러 함수
+  const handleSearch = (e) => {
+    if (e.key === 'Enter' && inputValue.trim() !== '') {
+      navigate(`/search-results?keyword=${inputValue.trim()}`);
+    }
+  };
+
 
   return (
     <div className="flex flex-col h-full">
-      <header className="flex items-center p-4 border-b flex-shrink-0">
+      <header className="flex items-center p-4 border-b flex-shrink-0 gap-2">
         <button onClick={() => navigate(-1)} className="p-1"><BackIcon /></button>
-        <h1 className="text-lg font-bold text-center flex-grow">'{query}' 검색 결과</h1>
-        <div className="w-6" />
+        {/* 기존 h1 제목을 검색창으로 변경 */}
+        <div className="relative flex-grow">
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+            🔎
+          </span>
+          <input
+            className="w-full h-10 rounded-lg border border-gray-300 pl-9 pr-3 text-sm"
+            placeholder="다시 검색해보세요"
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            onKeyDown={handleSearch}
+          />
+        </div>
       </header>
       <main className="flex-1 overflow-y-auto p-4 space-y-4">
         {loading ? (
