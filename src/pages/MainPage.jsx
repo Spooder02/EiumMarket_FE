@@ -21,6 +21,7 @@ export default function MainPage() {
   const location = useLocation();
   const [notifOpen, setNotifOpen] = useState(false);
   const { mode, isAdmin, toggle } = useAdminMode();
+  const [searchQuery, setSearchQuery] = useState(""); // 검색어 state 추가
 
   const [market, setMarket] = useState(
     () => localStorage.getItem("currentMarketName") || ""
@@ -31,6 +32,13 @@ export default function MainPage() {
   const [myMarkets, setMyMarkets] = useState(() => readMyMarkets());
   const [open, setOpen] = useState(false);
   const menuRef = useRef(null);
+
+  // 검색창 Enter 이벤트 핸들러
+  const handleSearch = (e) => {
+    if (e.key === 'Enter' && searchQuery.trim() !== '') {
+      navigate(`/search-results?keyword=${searchQuery}`);
+    }
+  };
 
   // 라우트 변경 시(시장 설정에서 돌아온 직후 포함) 최신값 동기화
   useEffect(() => {
@@ -274,6 +282,9 @@ export default function MainPage() {
           <input
             className="w-full h-12 rounded-xl border-none outline-none pl-9 pr-3 text-slate-700 bg-white shadow"
             placeholder="오늘의 장보기 시작!"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyDown={handleSearch}
           />
         </div>
       </header>
