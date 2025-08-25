@@ -188,6 +188,8 @@ export default function MarketSettingPage() {
           longitude: m.lng,
         });
         localStorage.setItem("currentMarketId", String(marketId));
+        localStorage.setItem("currentMarketName", String(m.name));
+        navigate('/')
       } catch (e) {
         console.error(e);
         alert("시장 등록/확인에 실패했습니다. 잠시 후 다시 시도해주세요.");

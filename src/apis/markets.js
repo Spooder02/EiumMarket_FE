@@ -74,11 +74,9 @@ export async function createMarket({
     if (Object.prototype.hasOwnProperty.call(payload, key)) {
       const value = payload[key];
 
-      // 배열인 경우 (예: imageUrls), JSON 문자열로 변환하여 추가
       if (Array.isArray(value)) {
         formData.append(key, JSON.stringify(value));
       } else {
-        // 배열이 아닌 다른 모든 값은 그대로 추가
         formData.append(key, value);
       }
     }

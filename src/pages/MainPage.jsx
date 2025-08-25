@@ -24,6 +24,9 @@ export default function MainPage() {
   const [market, setMarket] = useState(
     () => localStorage.getItem("currentMarketName") || ""
   );
+  const [marketId, setMarketId] = useState(
+    () => localStorage.getItem("currentMarketId") || ""
+  );
   const [myMarkets, setMyMarkets] = useState(() => readMyMarkets());
   const [open, setOpen] = useState(false);
   const menuRef = useRef(null);
@@ -31,6 +34,7 @@ export default function MainPage() {
   // 라우트 변경 시(시장 설정에서 돌아온 직후 포함) 최신값 동기화
   useEffect(() => {
     setMarket(localStorage.getItem("currentMarketName") || "");
+    setMarketId(localStorage.getItem("currentMarketId") || "");
     setMyMarkets(readMyMarkets());
   }, [location.pathname, location.search]);
 
@@ -279,7 +283,7 @@ export default function MainPage() {
               <div className="flex items-center justify-between mb-3">
                 <h3 className="font-extrabold text-[16px]">자주 찾는 가게</h3>
                 <Link
-                  to="/markets/11/shops/"
+                  to={`/markets/${marketId}/shops/`}
                   className="px-2 py-1 rounded-md font-bold text-emerald-700 hover:bg-emerald-50"
                 >
                   전체보기
