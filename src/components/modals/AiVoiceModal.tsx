@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import micIcon from '../../assets/mic.png';
+import axios from 'axios'; // axios를 import 합니다.
 
 // 닫기 아이콘 컴포넌트 (임시)
 export const XIcon = () => (
@@ -38,23 +39,9 @@ export default function AiVoiceModal({ target, isOpen, setIsOpen, onResult, exam
 
         try {
             setIsProcessing(true);
-            const response = await fetch(apiUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
+            const response = await axios.post(apiUrl, payload);
 
-            if (!response.ok) {
-                const errorBody = await response.json();
-                throw new Error(`Gemini API 요청 실패: ${response.status} - ${errorBody.error.message}`);
-            }
-
-            const result = await response.json();
-            
-            if (!result.candidates || result.candidates.length === 0) {
-                throw new Error("API 응답에서 유효한 후보를 찾을 수 없습니다.");
-            }
-            const text = result.candidates[0].content.parts[0].text;
+            const text = response.data.candidates[0].content.parts[0].text;
             console.log("Gemini 응답:", text);
 
             const jsonString = text.replace(/```json/g, '').replace(/```/g, '').trim();
@@ -65,7 +52,7 @@ export default function AiVoiceModal({ target, isOpen, setIsOpen, onResult, exam
             onResult(parsedData);
 
         } catch (error) {
-            console.error("Gemini API 연동 중 오류 발생:", error);
+            console.error("Gemini API 연동 중 오류 발생:", error.response?.data?.error?.message || error.message);
         } finally {
             setIsProcessing(false);
         }
@@ -76,37 +63,28 @@ export default function AiVoiceModal({ target, isOpen, setIsOpen, onResult, exam
         const clientId = import.meta.env.VITE_NAVER_VOICE_CLIENT_ID; 
         const clientSecret = import.meta.env.VITE_NAVER_VOICE_CLIENT_SECRET;
         
-        // ✅ Vite 프록시 설정에 맞게 경로를 수정합니다.
         const apiUrl = '/naver-api/recog/v1/stt?lang=Kor';
 
         console.log('Naver Clova API로 음성 데이터를 전송합니다...');
         try {
-            const response = await fetch(apiUrl, {
-                method: 'POST',
+            const response = await axios.post(apiUrl, audioBlob, {
                 headers: {
                     'X-NCP-APIGW-API-KEY-ID': clientId,
                     'X-NCP-APIGW-API-KEY': clientSecret,
                     'Content-Type': 'application/octet-stream'
                 },
-                body: audioBlob,
             });
 
-            if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(`API 요청 실패: ${response.status} ${response.statusText} - ${errorText}`);
-            }
-
-            const result = await response.json();
-            console.log('Clova API 응답 결과:', result);
+            console.log('Clova API 응답 결과:', response.data);
             
-            if (result.text) {
-                console.log('인식된 텍스트:', result.text);
-                sendTextToGemini(result.text);
+            if (response.data.text) {
+                console.log('인식된 텍스트:', response.data.text);
+                sendTextToGemini(response.data.text);
             } else {
-                console.log('텍스트를 인식하지 못했습니다. 응답:', result);
+                console.log('텍스트를 인식하지 못했습니다. 응답:', response.data);
             }
         } catch (error) {
-            console.error('Clova Speech API 연동 중 오류 발생:', error);
+            console.error('Clova Speech API 연동 중 오류 발생:', error.response?.data || error.message);
         }
     };
 
