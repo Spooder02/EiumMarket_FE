@@ -73,7 +73,7 @@ export default function ShopsListPage() {
         // const url = selectedCategoryId
         //   ? `/api/markets/${marketId}/shops?categoryId=${encodeURIComponent(selectedCategoryId)}`
         //   : `/api/markets/${marketId}/shops`;
-        const url = `/api/markets/${marketId}/shops`;
+        const url = `/markets/${marketId}/shops`;
         const response = await fetch(url);
         if (!response.ok) throw new Error(`서버 에러: ${response.status}`);
         const data = await response.json();
