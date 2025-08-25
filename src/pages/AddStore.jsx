@@ -17,7 +17,7 @@ export default function AddStore() {
 
   const [form, setForm] = useState({
     name: "",
-    category: "",
+    categoryId: "", // 선택된 카테고리의 ID를 저장하도록 변경
     phoneNumber: "",
     openingHours: "",
     floor: "",
@@ -26,10 +26,13 @@ export default function AddStore() {
     image: null,
   });
 
+  const [categories, setCategories] = useState([]); // 카테고리 목록 상태
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [inlineMsg, setInlineMsg] = useState(null);
   const [isAiImageModalOpen, setIsAiImageModalOpen] = useState(false);
-
+  
+  // 로컬 스토리지에서 marketId를 미리 가져옵니다.
+  const marketId = localStorage.getItem("currentMarketId");
   const BACKEND_ENDPOINT = import.meta.env.VITE_BACKEND_ENDPOINT;
 
   const shopInfo = {
@@ -42,6 +45,24 @@ export default function AddStore() {
       setInlineMsg(null);
     }
   }, [form.name]);
+  
+  // marketId가 변경될 때마다 카테고리 목록을 불러옵니다.
+  useEffect(() => {
+    const fetchCategories = async () => {
+      if (!marketId) return;
+
+      try {
+        const response = await apiFetch(`/markets/${marketId}/categories`);
+        const data = await response.json();
+        setCategories(data);
+      } catch (error) {
+        console.error("카테고리 목록 불러오기 실패:", error);
+        setCategories([]);
+      }
+    };
+
+    fetchCategories();
+  }, [marketId]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -63,7 +84,6 @@ export default function AddStore() {
   };
 
   const handleSubmit = async () => {
-    const marketId = localStorage.getItem("currentMarketId");
     if (!marketId) {
       alert("먼저 시장을 선택/등록해주세요.");
       return navigate("/market-setting");
@@ -73,6 +93,12 @@ export default function AddStore() {
       setInlineMsg("가게 이름과 주소는 필수 항목입니다.");
       return;
     }
+    
+    // 카테고리 선택 유효성 검사 추가
+    if (!form.categoryId) {
+        setInlineMsg("카테고리를 선택해주세요.");
+        return;
+    }
 
     setIsSubmitting(true);
     setInlineMsg(null);
@@ -80,7 +106,6 @@ export default function AddStore() {
     const formData = new FormData();
     formData.append('marketId', Number(marketId));
     formData.append('name', form.name);
-    formData.append('category', form.category);
     formData.append('phoneNumber', form.phoneNumber);
     formData.append('openingHours', form.openingHours);
     formData.append('floor', form.floor);
@@ -88,6 +113,9 @@ export default function AddStore() {
     formData.append('longitude', 126.9784);
     formData.append('description', form.description);
     formData.append('address', form.address);
+
+    // categoryIds 배열을 JSON 문자열로 변환하여 FormData에 추가
+    formData.append('categoryIds', JSON.stringify([Number(form.categoryId)]));
 
     const imageUrls = [];
     const imageFiles = [];
@@ -116,11 +144,6 @@ export default function AddStore() {
         method: "POST",
         body: formData,
       });
-
-      if (!response.ok) {
-        const text = await response.text().catch(() => "");
-        throw new Error(`서버 에러: ${response.status} ${text}`);
-      }
 
       const responseData = await response.json();
       alert("가게가 성공적으로 등록되었습니다!");
@@ -163,6 +186,7 @@ export default function AddStore() {
               aiPreview={typeof form.image === 'string' ? BACKEND_ENDPOINT + form.image : null}
             />
             <p className="mt-2 text-xs text-gray-500">손님에게 가게를 가장 잘 보여줄 수 있는 이미지를 등록해주세요.</p>
+            {inlineMsg && <p className="text-red-500 text-xs text-center mt-3">{inlineMsg}</p>}
             <button 
               type="button" 
               onClick={openAiImageModal}
@@ -171,18 +195,17 @@ export default function AddStore() {
               <span role="img" aria-label="sparkles">✨</span>
               AI로 상점 이미지 생성하기
             </button>
-            {inlineMsg && <p className="text-red-500 text-xs text-center mt-3">{inlineMsg}</p>}
           </div>
 
           <div className="bg-white p-4 rounded-lg shadow-sm">
-            <label htmlFor="category" className="block text-sm font-bold text-gray-800 mb-2">카테고리</label>
-            <select id="category" name="category" value={form.category} onChange={handleChange} className="w-full rounded-md border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-indigo-500">
+            <label htmlFor="categoryId" className="block text-sm font-bold text-gray-800 mb-2">카테고리</label>
+            <select id="categoryId" name="categoryId" value={form.categoryId} onChange={handleChange} className="w-full rounded-md border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-indigo-500">
               <option value="">가게 종류 선택</option>
-              <option value="한식">한식</option>
-              <option value="중식">중식</option>
-              <option value="일식">일식</option>
-              <option value="분식">분식</option>
-              <option value="족발/보쌈">족발/보쌈</option>
+              {categories.map((cat) => (
+                <option key={cat.categoryId} value={cat.categoryId}>
+                  {cat.name}
+                </option>
+              ))}
             </select>
           </div>
 
@@ -217,6 +240,7 @@ export default function AddStore() {
       </main>
 
       <footer className="p-4 border-t bg-white flex-shrink-0">
+        {inlineMsg && <p className="text-red-500 text-xs text-center mb-2">{inlineMsg}</p>}
         <button 
           type="button" 
           onClick={handleSubmit} 
