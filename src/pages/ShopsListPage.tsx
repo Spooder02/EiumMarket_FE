@@ -93,7 +93,7 @@ export default function ShopsPage() {
                 <Link to={`/markets/${marketId}/shops/${shop.shopId}`} className="block">
                   <div className="w-full h-40 bg-gray-100 overflow-hidden">
                     <img
-                      src={BACKEND_ENDPOINT + shop.imageUrls[0]}
+                      src={BACKEND_ENDPOINT + shop.imageUrls[0].replace(/[[\]"]/g, '')} 
                       alt={shop.name}
                       className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
                     />
