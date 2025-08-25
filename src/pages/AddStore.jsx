@@ -1,7 +1,8 @@
 // src/pages/AddStore.jsx
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import SingleImageUploader from "../components/SingleImageUploader.jsx";
+import AiImageModal from "../components/modals/AiImageModal.js";
 import { apiFetch } from "../lib/api";
 
 // --- 아이콘 SVG ---
@@ -25,59 +26,95 @@ export default function AddStore() {
     image: null,
   });
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [inlineMsg, setInlineMsg] = useState(null);
+  const [isAiImageModalOpen, setIsAiImageModalOpen] = useState(false);
+
+  const BACKEND_ENDPOINT = import.meta.env.VITE_BACKEND_ENDPOINT;
+
+  const shopInfo = {
+    name: form.name,
+    description: form.description,
+  };
+
+  useEffect(() => {
+    if (form.name) {
+      setInlineMsg(null);
+    }
+  }, [form.name]);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
+  const openAiImageModal = () => {
+    if (!form.name.trim()) {
+      setInlineMsg("AI 이미지 생성을 위해 가게 이름을 먼저 입력해주세요.");
+      return;
+    }
+    setInlineMsg(null);
+    setIsAiImageModalOpen(true);
+  };
+
+  const onUseAiFromImage = (data) => {
+    setForm((p) => ({ ...p, image: data }));
+    setIsAiImageModalOpen(false);
+  };
+
   const handleSubmit = async () => {
-    // 1) 시장 선택 여부
     const marketId = localStorage.getItem("currentMarketId");
     if (!marketId) {
-      alert("먼저 시장을 선택/등록해주세요. (상단 '시장 설정')");
+      alert("먼저 시장을 선택/등록해주세요.");
       return navigate("/market-setting");
     }
 
-    // 2) 간단 유효성
     if (!form.name || !form.address) {
-      alert("가게 이름과 주소는 필수 항목입니다.");
+      setInlineMsg("가게 이름과 주소는 필수 항목입니다.");
       return;
     }
 
-    // 3) 바디 구성
-    // TODO: 이미지 업로드 로직 추가 필요. 현재는 텍스트 데이터만 전송.
-    const requestBody = {
-      marketId: Number(marketId),
-      name: form.name,
-      category: form.category,
-      phoneNumber: form.phoneNumber,
-      openingHours: form.openingHours,
-      floor: form.floor,
-      latitude: 37.55998, // TODO: 실제 좌표 연결
-      longitude: 126.9784,
-      description: form.description,
-      // form.image가 File 객체이므로, 업로드 후 URL을 받아와야 합니다.
-      // 우선 임시 플레이스홀더 URL을 사용합니다.
-      shopImageUrl: "https://placehold.co/600x400/DDDDDD/333333?text=Image",
-      address: form.address,
-    };
-    
-    // 이미지가 있을 경우 FormData를 사용해야 합니다. 아래는 FormData 예시입니다.
-    // 현재는 JSON으로 보내고 있으므로, 이미지 전송을 위해서는 수정이 필요합니다.
-    /*
+    setIsSubmitting(true);
+    setInlineMsg(null);
+
     const formData = new FormData();
-    formData.append('imageFile', form.image);
-    // DTO를 JSON Blob으로 변환하여 추가
-    const dtoBlob = new Blob([JSON.stringify({ ...requestBody, shopImageUrl: null })], { type: 'application/json' });
-    formData.append('dto', dtoBlob);
-    */
+    formData.append('marketId', Number(marketId));
+    formData.append('name', form.name);
+    formData.append('category', form.category);
+    formData.append('phoneNumber', form.phoneNumber);
+    formData.append('openingHours', form.openingHours);
+    formData.append('floor', form.floor);
+    formData.append('latitude', 37.55998);
+    formData.append('longitude', 126.9784);
+    formData.append('description', form.description);
+    formData.append('address', form.address);
+
+    const imageUrls = [];
+    const imageFiles = [];
+
+    if (form.image) {
+      if (typeof form.image === 'string') {
+        imageUrls.push(form.image);
+      } else if (form.image instanceof File) {
+        imageFiles.push(form.image);
+      }
+    }
+
+    formData.append('imageUrls', JSON.stringify(imageUrls));
+
+    if (imageFiles.length > 0) {
+      imageFiles.forEach(file => {
+        formData.append('imageFiles', file);
+      });
+    } else {
+      const emptyFile = new Blob([], { type: 'application/octet-stream' });
+      formData.append('imageFiles', emptyFile, '');
+    }
 
     try {
       const response = await apiFetch(`/markets/${marketId}/shops`, {
         method: "POST",
-        // form.image가 있을 경우 headers와 body를 FormData에 맞게 수정해야 합니다.
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(requestBody),
+        body: formData,
       });
 
       if (!response.ok) {
@@ -87,15 +124,24 @@ export default function AddStore() {
 
       const responseData = await response.json();
       alert("가게가 성공적으로 등록되었습니다!");
-      navigate(`/store/${responseData.shopId}`);
+      navigate(`/markets/${marketId}/shops/${responseData.shopId}`);
     } catch (error) {
       console.error("가게 등록 실패:", error);
-      alert("가게 등록에 실패했습니다. 다시 시도해주세요.");
+      setInlineMsg("가게 등록에 실패했습니다. 다시 시도해주세요.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
     <div className="h-full flex flex-col">
+      <AiImageModal
+        isOpen={isAiImageModalOpen}
+        setIsOpen={setIsAiImageModalOpen}
+        onResult={onUseAiFromImage}
+        shopInfo={shopInfo}
+      />
+      
       <header className="flex items-center p-4 border-b flex-shrink-0">
         <button onClick={() => navigate(-1)} className="p-1"><BackIcon /></button>
         <h1 className="text-lg font-bold text-center flex-grow">내 가게 정보 등록</h1>
@@ -106,16 +152,31 @@ export default function AddStore() {
         <div className="space-y-6">
           <div className="bg-white p-4 rounded-lg shadow-sm">
             <label htmlFor="name" className="block text-sm font-bold text-gray-800 mb-2">가게 이름</label>
-            <input id="name" name="name" value={form.name} onChange={handleChange} className="w-full rounded-md border-gray-300 px-3 py-2 text-sm" placeholder="예: 동산족발" />
+            <input id="name" name="name" value={form.name} onChange={handleChange} className="w-full rounded-md border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="예: 동산족발" />
+            <p className="mt-2 text-xs text-gray-500">가게의 정식 명칭을 입력해주세요.</p>
           </div>
 
           <div className="bg-white p-4 rounded-lg shadow-sm">
-            <SingleImageUploader onFileChange={(file) => setForm((p) => ({ ...p, image: file }))} label="가게 대표 이미지" />
+            <SingleImageUploader 
+              onFileChange={(file) => setForm((p) => ({ ...p, image: file }))} 
+              label="가게 대표 이미지"
+              aiPreview={typeof form.image === 'string' ? BACKEND_ENDPOINT + form.image : null}
+            />
+            <p className="mt-2 text-xs text-gray-500">손님에게 가게를 가장 잘 보여줄 수 있는 이미지를 등록해주세요.</p>
+            <button 
+              type="button" 
+              onClick={openAiImageModal}
+              className="w-full mt-3 flex items-center justify-center gap-2 rounded-lg bg-purple-100 text-purple-800 py-3 text-sm font-bold transition-transform hover:scale-[1.02]"
+            >
+              <span role="img" aria-label="sparkles">✨</span>
+              AI로 상점 이미지 생성하기
+            </button>
+            {inlineMsg && <p className="text-red-500 text-xs text-center mt-3">{inlineMsg}</p>}
           </div>
 
           <div className="bg-white p-4 rounded-lg shadow-sm">
             <label htmlFor="category" className="block text-sm font-bold text-gray-800 mb-2">카테고리</label>
-            <select id="category" name="category" value={form.category} onChange={handleChange} className="w-full rounded-md border-gray-300 px-3 py-2 text-sm">
+            <select id="category" name="category" value={form.category} onChange={handleChange} className="w-full rounded-md border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-indigo-500">
               <option value="">가게 종류 선택</option>
               <option value="한식">한식</option>
               <option value="중식">중식</option>
@@ -127,34 +188,42 @@ export default function AddStore() {
 
           <div className="bg-white p-4 rounded-lg shadow-sm">
             <label htmlFor="address" className="block text-sm font-bold text-gray-800 mb-2">가게 주소</label>
-            <input id="address" name="address" value={form.address} onChange={handleChange} className="w-full rounded-md border-gray-300 px-3 py-2 text-sm" placeholder="예: 전남 여수시 시교4길 8-3" />
+            <input id="address" name="address" value={form.address} onChange={handleChange} className="w-full rounded-md border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="예: 전남 여수시 시교4길 8-3" />
+            <p className="mt-2 text-xs text-gray-500">정확한 주소는 손님이 찾아오는데 큰 도움이 됩니다.</p>
           </div>
 
           <div className="bg-white p-4 rounded-lg shadow-sm">
             <label htmlFor="floor" className="block text-sm font-bold text-gray-800 mb-2">층 / 호수</label>
-            <input id="floor" name="floor" value={form.floor} onChange={handleChange} className="w-full rounded-md border-gray-300 px-3 py-2 text-sm" placeholder="예: 1층 A-02호" />
+            <input id="floor" name="floor" value={form.floor} onChange={handleChange} className="w-full rounded-md border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="예: 1층 A-02호" />
+            <p className="mt-2 text-xs text-gray-500">시장 내 정확한 위치를 입력해주세요.</p>
           </div>
 
           <div className="bg-white p-4 rounded-lg shadow-sm">
             <label htmlFor="phoneNumber" className="block text-sm font-bold text-gray-800 mb-2">전화번호</label>
-            <input id="phoneNumber" name="phoneNumber" type="tel" value={form.phoneNumber} onChange={handleChange} className="w-full rounded-md border-gray-300 px-3 py-2 text-sm" placeholder="예: 061-642-7089" />
+            <input id="phoneNumber" name="phoneNumber" type="tel" value={form.phoneNumber} onChange={handleChange} className="w-full rounded-md border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="예: 061-642-7089" />
           </div>
 
           <div className="bg-white p-4 rounded-lg shadow-sm">
             <label htmlFor="openingHours" className="block text-sm font-bold text-gray-800 mb-2">영업시간</label>
-            <input id="openingHours" name="openingHours" value={form.openingHours} onChange={handleChange} className="w-full rounded-md border-gray-300 px-3 py-2 text-sm" placeholder="예: 09:00 ~ 21:00" />
+            <input id="openingHours" name="openingHours" value={form.openingHours} onChange={handleChange} className="w-full rounded-md border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="예: 09:00 ~ 21:00" />
+            <p className="mt-2 text-xs text-gray-500">손님이 방문할 수 있는 시간을 알려주세요.</p>
           </div>
 
           <div className="bg-white p-4 rounded-lg shadow-sm">
             <label htmlFor="description" className="block text-sm font-bold text-gray-800 mb-2">가게 설명</label>
-            <textarea id="description" name="description" value={form.description} onChange={handleChange} className="w-full rounded-md border-gray-300 px-3 py-2 text-sm h-24 resize-none" placeholder="손님들에게 보여질 가게 설명을 적어주세요." />
+            <textarea id="description" name="description" value={form.description} onChange={handleChange} className="w-full rounded-md border-gray-300 px-3 py-2 text-sm h-28 resize-none focus:border-indigo-500 focus:ring-indigo-500" placeholder="손님들에게 보여질 가게 설명을 적어주세요." />
           </div>
         </div>
       </main>
 
       <footer className="p-4 border-t bg-white flex-shrink-0">
-        <button type="button" onClick={handleSubmit} className="w-full rounded-lg bg-indigo-600 text-white py-3 text-sm font-bold hover:bg-indigo-700 transition-colors">
-          가게 정보 등록하기
+        <button 
+          type="button" 
+          onClick={handleSubmit} 
+          disabled={isSubmitting}
+          className="w-full rounded-lg bg-emerald-500 text-white py-3 text-sm font-bold hover:bg-emerald-600 transition-colors disabled:bg-gray-400"
+        >
+          {isSubmitting ? "등록 중..." : "가게 정보 등록하기"}
         </button>
       </footer>
     </div>
