@@ -4,7 +4,6 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import marketImg from "../assets/korean-market-storefront.png";
 import useAdminMode from "../hooks/useAdminMode";
 import ModeToggle from "../components/ModeToggle";
-import { findMarketId } from "../apis/markets";
 
 const MY_MARKETS_KEY = "myMarkets";
 const readMyMarkets = () => {
@@ -21,10 +20,12 @@ export default function MainPage() {
   const location = useLocation();
   const [notifOpen, setNotifOpen] = useState(false);
   const { mode, isAdmin, toggle } = useAdminMode();
+  const [searchQuery, setSearchQuery] = useState("");
 
   const [market, setMarket] = useState(
     () => localStorage.getItem("currentMarketName") || ""
   );
+  // marketId 상태 추가
   const [marketId, setMarketId] = useState(
     () => localStorage.getItem("currentMarketId") || ""
   );
@@ -32,20 +33,30 @@ export default function MainPage() {
   const [open, setOpen] = useState(false);
   const menuRef = useRef(null);
 
-  // 라우트 변경 시(시장 설정에서 돌아온 직후 포함) 최신값 동기화
+  // 검색 핸들러 수정
+  const handleSearch = (e) => {
+    if (e.key === 'Enter' && searchQuery.trim() !== '') {
+      // 시장이 선택되었는지 확인
+      if (!marketId) {
+        alert("먼저 검색할 시장을 선택해주세요.");
+        return;
+      }
+      // marketId를 포함하여 검색 결과 페이지로 이동
+      navigate(`/markets/${marketId}/search-results?keyword=${searchQuery}`);
+    }
+  };
+
+  // 라우트 변경 시 marketId도 동기화
   useEffect(() => {
-    const storedMarketName = localStorage.getItem("currentMarketName") || "";
-    const storedMarketId = localStorage.getItem("currentMarketId") || "";
-    setMarket(storedMarketName);
-    setMarketId(storedMarketId);
+    setMarket(localStorage.getItem("currentMarketName") || "");
+    setMarketId(localStorage.getItem("currentMarketId") || "");
     setMyMarkets(readMyMarkets());
   }, [location.pathname, location.search]);
 
-  // 포커스/스토리지 동기화(다른 탭 대비)
   useEffect(() => {
     const sync = () => {
       setMarket(localStorage.getItem("currentMarketName") || "");
-      setMarketId(localStorage.getItem("currentMarketId") || "");
+      setMarketId(localStorage.getItem("currentMarketId") || ""); // 동기화 추가
       setMyMarkets(readMyMarkets());
     };
     window.addEventListener("focus", sync);
@@ -56,7 +67,6 @@ export default function MainPage() {
     };
   }, []);
 
-  // 외부 클릭으로 드롭다운 닫기
   useEffect(() => {
     const onClickOutside = (e) => {
       if (!menuRef.current) return;
@@ -66,62 +76,33 @@ export default function MainPage() {
     return () => document.removeEventListener("mousedown", onClickOutside);
   }, [open]);
 
-  // 시장 이름이 변경될 때마다 marketId를 불러오는 로직
-  // 기존 apiFetch 호출 로직을 findMarketId 함수로 대체했습니다.
-  useEffect(() => {
-    const fetchMarketId = async () => {
-      if (!market) {
-        setMarketId("");
-        localStorage.removeItem("currentMarketId");
-        return;
-      }
-      
-      const id = await findMarketId({ name: market });
-
-      if (id) {
-        setMarketId(id);
-        localStorage.setItem("currentMarketId", id);
-      } else {
-        setMarketId("");
-        localStorage.removeItem("currentMarketId");
-        console.error("선택된 시장의 ID를 찾을 수 없습니다.");
-      }
-    };
-    fetchMarketId();
-  }, [market]);
-
   function goMarketSetting() {
     setOpen(false);
     navigate("/market-setting");
   }
 
-  // 드롭다운 열 때 최신 목록 재읽기
   function toggleMenu() {
     if (!open) setMyMarkets(readMyMarkets());
     setOpen((v) => !v);
   }
 
-  // “선택”: 현재 시장 지정
   function chooseMarket(m) {
     localStorage.setItem("currentMarketName", m.name);
-    if (m.id) {
-        localStorage.setItem("currentMarketId", m.id);
-        setMarketId(m.id);
-    }
+    if (m.id) localStorage.setItem("currentMarketId", m.id);
     if (m.lat) localStorage.setItem("currentMarketLat", String(m.lat));
     if (m.lng) localStorage.setItem("currentMarketLng", String(m.lng));
     setMarket(m.name);
+    setMarketId(m.id); // marketId 상태 업데이트
     setOpen(false);
   }
 
-  // 선택만 해제(저장 목록은 유지)
   function clearSelection() {
     localStorage.removeItem("currentMarketName");
     localStorage.removeItem("currentMarketId");
     localStorage.removeItem("currentMarketLat");
     localStorage.removeItem("currentMarketLng");
     setMarket("");
-    setMarketId("");
+    setMarketId(""); // marketId 상태 초기화
     setOpen(false);
   }
 
@@ -274,6 +255,9 @@ export default function MainPage() {
           <input
             className="w-full h-12 rounded-xl border-none outline-none pl-9 pr-3 text-slate-700 bg-white shadow"
             placeholder="오늘의 장보기 시작!"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyDown={handleSearch}
           />
         </div>
       </header>
