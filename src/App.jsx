@@ -8,6 +8,7 @@ import StorePage from "./pages/StorePage";
 import CartPage from "./pages/CartPage";
 import ProductDetailModal from "./components/modals/ProductDetailModal";
 import ProductPreview from "./pages/ProductPreview";
+import ShopsPage from "./pages/ShopsPage";
 
 export default function App() {
   const [cart, setCart] = useState([]);
@@ -53,30 +54,31 @@ export default function App() {
 
   const handlePreview = (productData) => {
     setProductDataForPreview(productData);
-    // 실제 페이지 이동은 각 컴포넌트에서 useNavigate를 사용해 처리합니다.
+    // The actual page navigation is handled by useNavigate in each component.
   };
 
   return (
-    // 배경색을 지정하고 스마트폰 화면을 중앙에 배치합니다.
     <div className="min-h-screen flex justify-center bg-gray-200">
-      {/* 이 div가 모든 페이지를 감싸는 스마트폰 모양의 '틀'이 됩니다. */}
       <div className="w-full max-w-md h-screen bg-white shadow-lg flex flex-col relative">
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<MainPage />} />
             <Route path="/market-setting" element={<MarketSettingPage />} />
-            <Route
-              path="/store"
-              element={
-                <StorePage
-                  onSelectProduct={handleSelectProduct}
-                  cartItemCount={cart.reduce(
-                    (total, item) => total + item.quantity,
-                    0
-                  )}
-                />
-              }
-            />
+            <Route path="/markets/:marketId">
+              <Route path="shops" element={<ShopsPage />} />
+              <Route
+                path="shops/:shopId"
+                element={
+                  <StorePage
+                    onSelectProduct={handleSelectProduct}
+                    cartItemCount={cart.reduce(
+                      (total, item) => total + item.quantity,
+                      0
+                    )}
+                  />
+                }
+              />
+            </Route>
             <Route
               path="/add-product"
               element={<AddProduct onPreview={handlePreview} />}
@@ -101,7 +103,6 @@ export default function App() {
           </Routes>
         </BrowserRouter>
 
-        {/* 모달은 라우터 밖에 두어 어떤 페이지에서든 표시될 수 있도록 합니다. */}
         {selectedProduct && (
           <ProductDetailModal
             product={selectedProduct}

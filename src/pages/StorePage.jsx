@@ -9,13 +9,16 @@ const LocationIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-
 const ClockIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>;
 const PhoneIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>;
 const CartIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>;
+const BackIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>;
 
 export default function StorePage({ onSelectProduct, cartItemCount }) {
   const [activeTab, setActiveTab] = useState('메뉴');
   const [storeData, setStoreData] = useState(null); // 가게 데이터를 저장할 state
   const [loading, setLoading] = useState(true);     // 로딩 상태를 관리할 state
   const navigate = useNavigate();
-  const { shopId } = useParams(); // URL에서 shopId를 가져옵니다. (API 명세에 따라 shopId로 변경)
+  const { marketId, shopId } = useParams();
+  
+  const BACKEND_ENDPOINT = import.meta.env.VITE_BACKEND_ENDPOINT;
 
   // useEffect를 사용해 컴포넌트가 처음 렌더링될 때 API를 호출합니다.
   useEffect(() => {
@@ -23,7 +26,7 @@ export default function StorePage({ onSelectProduct, cartItemCount }) {
       try {
         setLoading(true); // 데이터 불러오기 시작
         // Vite 프록시 설정을 이용해 API를 호출합니다.
-        const response = await fetch(`/api/markets/1/shops/${shopId}`);
+        const response = await fetch(`/api/markets/${marketId}/shops/${shopId}`);
         
         if (!response.ok) {
           throw new Error(`서버 에러: ${response.status}`);
@@ -32,6 +35,7 @@ export default function StorePage({ onSelectProduct, cartItemCount }) {
         const data = await response.json();
         setStoreData(data); // 성공적으로 받아온 데이터를 state에 저장
         console.log("가게 정보 로딩 성공:", data);
+        console.log("가게 이미지 URL:", BACKEND_ENDPOINT + data.imageUrls[0]);
 
       } catch (error) {
         console.error("가게 정보를 불러오는 데 실패했습니다.", error);
@@ -67,9 +71,16 @@ export default function StorePage({ onSelectProduct, cartItemCount }) {
 
   return (
     <div className="h-full bg-white flex flex-col relative">
+      <button 
+        onClick={() => navigate(`/markets/${marketId}/shops`)} 
+        className="absolute top-4 left-4 z-50 p-2 bg-white rounded-full shadow-md"
+        aria-label="Go back"
+      >
+        <BackIcon />
+      </button>
       <div className="flex-1 flex flex-col overflow-hidden">
         <div className="flex-shrink-0">
-          <div className="w-full h-48 bg-gray-200"><img src={storeData.shopImageUrl} alt={storeData.name} className="w-full h-full object-cover" /></div>
+          <div className="w-full h-48 bg-gray-200"><img src={BACKEND_ENDPOINT+storeData.imageUrls[0]} alt={storeData.name} className="w-full h-full object-cover" /></div>
           <div className="p-4">
             <div className="flex justify-between items-center">
               <h1 className="text-2xl font-bold">{storeData.name}</h1>
@@ -115,7 +126,7 @@ export default function StorePage({ onSelectProduct, cartItemCount }) {
                     <div className="font-bold text-base">{item.price.toLocaleString()}원</div>
                   </div>
                   <div className="w-24 h-24 rounded-md overflow-hidden bg-gray-200 flex-shrink-0">
-                    <img src={item.itemImageUrl} alt={item.name} className="w-full h-full object-cover" />
+                    <img src={BACKEND_ENDPOINT+item.imageUrls[0]} alt={item.name} className="w-full h-full object-cover" />
                   </div>
                 </li>
               ))}
