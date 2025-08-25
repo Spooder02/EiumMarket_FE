@@ -93,7 +93,7 @@ export async function createMarket({
   const emptyFile = new Blob([], { type: 'application/octet-stream' });
   formData.append('imageFiles', emptyFile, '');
 
-  const res = await apiFetch(`/markets`, {
+  const res = await apiFetch(`/api/markets`, {
     method: "POST",
     body: formData
   });

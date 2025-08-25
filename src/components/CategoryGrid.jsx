@@ -25,7 +25,7 @@ export default function CategoryGrid({ marketId }) {
       if (!marketId) return;
       try {
         setLoading(true);
-        const res = await fetch(`/markets/${marketId}/categories`);
+        const res = await fetch(`/api/markets/${marketId}/categories`);
         if (!res.ok) throw new Error(`카테고리 조회 실패 ${res.status}`);
         const data = await res.json(); // [{ categoryId, name, icon }]
         
