@@ -279,7 +279,7 @@ export default function MainPage() {
               <div className="flex items-center justify-between mb-3">
                 <h3 className="font-extrabold text-[16px]">자주 찾는 가게</h3>
                 <Link
-                  to="/store"
+                  to="/markets/11/shops/"
                   className="px-2 py-1 rounded-md font-bold text-emerald-700 hover:bg-emerald-50"
                 >
                   전체보기
