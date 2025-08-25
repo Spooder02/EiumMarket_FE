@@ -4,7 +4,7 @@ import { useNavigate, useParams, Link } from 'react-router-dom';
 import { apiFetch } from "../lib/api";
 import { loadKakaoMap } from '../lib/kakaoMapLoader';
 
-// --- 아이콘 SVG 컴포넌트들 ---
+// --- 아이콘 SVG 컴포넌트들 (기존과 동일) ---
 const StarIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-yellow-400" viewBox="0 0 20 20" fill="currentColor"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>;
 const HeartOutline = () => (
   <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -32,6 +32,7 @@ export default function StorePage({ onSelectProduct, cartItemCount }) {
   const [favLoading, setFavLoading] = useState(false);
   
   const mapContainer = useRef(null);
+  const mapInstance = useRef(null); // 지도 인스턴스를 저장할 ref 추가
 
   const navigate = useNavigate();
   const { marketId, shopId } = useParams();
@@ -71,16 +72,37 @@ export default function StorePage({ onSelectProduct, cartItemCount }) {
 
   useEffect(() => {
     if (activeTab === '지도' && storeData && mapContainer.current) {
-      loadKakaoMap().then(kakao => {
-        const mapOption = {
-          center: new kakao.maps.LatLng(storeData.latitude, storeData.longitude),
-          level: 3,
-        };
-        const map = new kakao.maps.Map(mapContainer.current, mapOption);
-        const markerPosition = new kakao.maps.LatLng(storeData.latitude, storeData.longitude);
-        const marker = new kakao.maps.Marker({ position: markerPosition });
-        marker.setMap(map);
-      }).catch(console.error);
+      const marketLat = parseFloat(localStorage.getItem("currentMarketLat"));
+      const marketLng = parseFloat(localStorage.getItem("currentMarketLng"));
+      const storeLat = parseFloat(storeData.latitude);
+      const storeLng = parseFloat(storeData.longitude);
+
+      if (!isNaN(marketLat) && !isNaN(marketLng) && !isNaN(storeLat) && !isNaN(storeLng)) {
+        loadKakaoMap().then(kakao => {
+          mapContainer.current.innerHTML = ''; // 컨테이너 초기화
+          const mapOption = {
+            center: new kakao.maps.LatLng(marketLat, marketLng),
+            level: 4,
+          };
+          
+          const map = new kakao.maps.Map(mapContainer.current, mapOption);
+          mapInstance.current = map; // 지도 인스턴스 저장
+          
+          const markerPosition = new kakao.maps.LatLng(storeLat, storeLng);
+          const marker = new kakao.maps.Marker({
+            position: markerPosition,
+          });
+          
+          marker.setMap(map);
+
+          // 탭 전환 시 지도가 깨지는 것을 방지하기 위해 relayout 호출
+          setTimeout(() => {
+            if (mapInstance.current) {
+              mapInstance.current.relayout();
+            }
+          }, 0);
+        }).catch(console.error);
+      }
     }
   }, [activeTab, storeData]);
 
@@ -139,7 +161,6 @@ export default function StorePage({ onSelectProduct, cartItemCount }) {
                 {favorited ? <HeartFilled /> : <HeartOutline />}
               </button>
             </div>
-            {/* --- 수정된 부분 --- */}
             <div className="mt-1 space-y-1">
               <div className="flex items-center text-sm">
                 <StarIcon />
