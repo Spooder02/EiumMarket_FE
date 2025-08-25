@@ -135,7 +135,7 @@ export default function AddProduct({ onPreview }) {
         }
       }
     } else {
-      if (!form.price.trim()) {
+      if (form.price == '') {
         setInlineMsg("가격을 입력해주세요.");
         return false;
       }

@@ -115,7 +115,10 @@ export default function AddStore() {
     formData.append('address', form.address);
 
     // categoryIds 배열을 JSON 문자열로 변환하여 FormData에 추가
-    formData.append('categoryIds', JSON.stringify([Number(form.categoryId)]));
+    const categoryIds = [Number(form.categoryId)];
+    categoryIds.forEach(id => {
+      formData.append('categoryIds', id);
+    });
 
     const imageUrls = [];
     const imageFiles = [];
